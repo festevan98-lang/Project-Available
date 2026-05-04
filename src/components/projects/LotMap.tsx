@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { Lot, LotStatus } from '@/lib/supabase/types';
 import { LotDetailPanel } from './LotDetailPanel';
 import { LotFilters, type LotFilterState } from './LotFilters';
+import { LotPopover } from './LotPopover';
 
 const STATUS_FILL: Record<LotStatus, string> = {
-  available: 'rgba(217, 164, 55, 0.55)',
-  reserved: 'rgba(217, 164, 55, 0.25)',
+  available: 'rgba(217, 164, 55, 0.7)',
+  reserved: 'rgba(217, 164, 55, 0.28)',
   under_contract: 'rgba(120, 84, 32, 0.55)',
-  sold: 'rgba(80, 78, 70, 0.45)',
+  sold: 'rgba(80, 78, 70, 0.4)',
 };
 
 const STATUS_STROKE: Record<LotStatus, string> = {
@@ -33,6 +34,16 @@ function lotMatchesFilter(lot: Lot, f: LotFilterState): boolean {
   return true;
 }
 
+function polygonCentroid(points: string): { x: number; y: number } {
+  const pairs = points.trim().split(/\s+/).map((p) => {
+    const [x, y] = p.split(',').map(Number);
+    return { x, y };
+  });
+  const cx = pairs.reduce((s, p) => s + p.x, 0) / pairs.length;
+  const cy = pairs.reduce((s, p) => s + p.y, 0) / pairs.length;
+  return { x: cx, y: cy };
+}
+
 interface Props {
   projectName: string;
   platImageUrl: string | null;
@@ -50,8 +61,8 @@ export function LotMap({
   lots,
   onInterest,
 }: Props) {
-  const [selected, setSelected] = useState<Lot | null>(null);
-  const [hovered, setHovered] = useState<Lot | null>(null);
+  const [popoverLot, setPopoverLot] = useState<Lot | null>(null);
+  const [detailLot, setDetailLot] = useState<Lot | null>(null);
   const [filters, setFilters] = useState<LotFilterState>({
     status: 'all',
     phase: 'all',
@@ -60,7 +71,6 @@ export function LotMap({
     minPrice: undefined,
     maxPrice: undefined,
   });
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const phases = useMemo(() => {
     const set = new Set<string>();
@@ -81,21 +91,16 @@ export function LotMap({
       />
 
       <div
-        ref={containerRef}
-        className="relative w-full bg-ink-900 border border-ink-700/50 rounded-sm overflow-hidden"
+        className="relative w-full bg-ink-900/60 border border-ink-700/50 rounded-sm overflow-hidden"
         style={{ aspectRatio: `${platWidth} / ${platHeight}` }}
       >
-        {platImageUrl ? (
+        {platImageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={platImageUrl}
             alt={`${projectName} plat`}
-            className="absolute inset-0 w-full h-full object-contain opacity-90"
+            className="absolute inset-0 w-full h-full object-contain opacity-25"
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-ink-400 text-sm">
-            Plat image not yet uploaded
-          </div>
         )}
 
         <svg
@@ -105,56 +110,62 @@ export function LotMap({
         >
           {lots.map((lot) => {
             const matches = lotMatchesFilter(lot, filters);
-            const isSelected = selected?.id === lot.id;
-            const isHovered = hovered?.id === lot.id;
+            const isSelected = popoverLot?.id === lot.id;
             const clickable = lot.status !== 'sold';
+            const centroid = polygonCentroid(lot.polygon_points);
 
             return (
               <g key={lot.id}>
                 <polygon
                   points={lot.polygon_points}
                   fill={STATUS_FILL[lot.status]}
-                  stroke={
-                    isSelected || isHovered
-                      ? '#f8ecc8'
-                      : STATUS_STROKE[lot.status]
-                  }
-                  strokeWidth={isSelected || isHovered ? 3 : 1.5}
+                  stroke={isSelected ? '#f8ecc8' : STATUS_STROKE[lot.status]}
+                  strokeWidth={isSelected ? 3 : 1.5}
                   style={{
                     opacity: matches ? 1 : 0.18,
                     cursor: clickable ? 'pointer' : 'default',
                     transition: 'opacity 200ms, stroke 150ms, stroke-width 150ms',
                   }}
-                  onClick={() => clickable && setSelected(lot)}
-                  onMouseEnter={() => setHovered(lot)}
-                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => clickable && setPopoverLot(lot)}
                 />
+                <text
+                  x={centroid.x}
+                  y={centroid.y}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill="#0d0c08"
+                  fontSize={Math.max(10, platWidth / 80)}
+                  fontWeight={500}
+                  style={{ pointerEvents: 'none', opacity: matches ? 0.8 : 0.2 }}
+                >
+                  {lot.lot_number}
+                </text>
               </g>
             );
           })}
         </svg>
 
-        {hovered && (
-          <div className="absolute top-3 left-3 bg-ink-950/95 border border-brass-500/40 px-3 py-2 rounded-sm text-sm pointer-events-none">
-            <span className="font-medium text-brass-300">
-              Lot {hovered.lot_number}
-            </span>
-            <span className="text-ink-300 ml-3 capitalize">
-              {hovered.status.replace('_', ' ')}
-            </span>
-          </div>
+        {popoverLot && (
+          <LotPopover
+            lot={popoverLot}
+            onClose={() => setPopoverLot(null)}
+            onViewDetails={() => {
+              setDetailLot(popoverLot);
+              setPopoverLot(null);
+            }}
+          />
         )}
       </div>
 
       <Legend />
 
-      {selected && (
+      {detailLot && (
         <LotDetailPanel
-          lot={selected}
-          onClose={() => setSelected(null)}
+          lot={detailLot}
+          onClose={() => setDetailLot(null)}
           onInterest={() => {
-            onInterest(selected);
-            setSelected(null);
+            onInterest(detailLot);
+            setDetailLot(null);
           }}
         />
       )}

@@ -101,7 +101,7 @@ begin
       status_val := 'available';
     end if;
 
-    insert into lots (project_id, lot_number, phase, status, size_sqft, price, polygon_points)
+    insert into lots (project_id, lot_number, phase, status, size_sqft, price, polygon_points, dimensions)
     values (
       proj_id,
       'L' || lpad(i::text, 3, '0'),
@@ -109,7 +109,8 @@ begin
       status_val,
       6500 + (i % 7) * 250,
       95000 + (i % 11) * 4500,
-      x1 || ',' || y1 || ' ' || x2 || ',' || y1 || ' ' || x2 || ',' || y2 || ' ' || x1 || ',' || y2
+      x1 || ',' || y1 || ' ' || x2 || ',' || y1 || ' ' || x2 || ',' || y2 || ' ' || x1 || ',' || y2,
+      '60'' x 110'''
     );
   end loop;
 
@@ -123,7 +124,7 @@ begin
     x2 := x1 + 260;
     y2 := y1 + 220;
 
-    insert into lots (project_id, lot_number, phase, status, size_sqft, price, polygon_points)
+    insert into lots (project_id, lot_number, phase, status, size_sqft, price, polygon_points, dimensions)
     values (
       proj_id,
       'L' || lpad(i::text, 2, '0'),
@@ -131,7 +132,8 @@ begin
       'available',
       8000 + (i % 5) * 400,
       85000 + (i % 8) * 4000,
-      x1 || ',' || y1 || ' ' || x2 || ',' || y1 || ' ' || x2 || ',' || y2 || ' ' || x1 || ',' || y2
+      x1 || ',' || y1 || ' ' || x2 || ',' || y1 || ' ' || x2 || ',' || y2 || ' ' || x1 || ',' || y2,
+      '80'' x 120'''
     );
   end loop;
 end $$;

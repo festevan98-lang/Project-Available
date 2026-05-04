@@ -45,6 +45,7 @@ export interface Lot {
   size_sqft: number | null;
   price: number | null;
   polygon_points: string;
+  dimensions: string | null;
   notes: string | null;
 }
 

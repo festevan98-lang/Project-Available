@@ -45,22 +45,35 @@ export function LotDetailPanel({ lot, onClose, onInterest }: Props) {
           </button>
         </div>
 
-        <dl className="space-y-3 text-sm border-t border-ink-700/50 pt-4">
-          <Row label="Status" value={STATUS_LABELS[lot.status]} accent />
-          {lot.phase && <Row label="Phase" value={lot.phase} />}
+        <p className="text-brass-400 uppercase tracking-[0.2em] text-xs mb-3">
+          Lot details
+        </p>
+        <div className="border-t border-brass-500/30 pt-4 flex flex-wrap gap-2 mb-6">
+          <Chip label="Lot" value={`#${lot.lot_number}`} />
+          <Chip label="Status" value={STATUS_LABELS[lot.status]} accent />
+          {lot.phase && <Chip label="Phase" value={lot.phase} />}
+          {lot.price && (
+            <Chip label="Price" value={`$${lot.price.toLocaleString()}`} />
+          )}
           {lot.size_sqft && (
-            <Row
-              label="Size"
-              value={`${lot.size_sqft.toLocaleString()} sqft`}
+            <Chip
+              label="Sq Ft"
+              value={lot.size_sqft.toLocaleString()}
             />
           )}
-          {lot.price && (
-            <Row label="Price" value={`$${lot.price.toLocaleString()}`} />
-          )}
-          {lot.notes && <Row label="Notes" value={lot.notes} />}
-        </dl>
+          {lot.dimensions && <Chip label="Dimensions" value={lot.dimensions} />}
+        </div>
 
-        <div className="mt-8 space-y-3">
+        {lot.notes && (
+          <div className="text-sm text-ink-200 mb-6">
+            <p className="text-ink-400 text-xs uppercase tracking-wider mb-1">
+              Notes
+            </p>
+            {lot.notes}
+          </div>
+        )}
+
+        <div className="space-y-3">
           {canReserve ? (
             <button
               onClick={onInterest}
@@ -85,7 +98,7 @@ export function LotDetailPanel({ lot, onClose, onInterest }: Props) {
   );
 }
 
-function Row({
+function Chip({
   label,
   value,
   accent,
@@ -95,11 +108,23 @@ function Row({
   accent?: boolean;
 }) {
   return (
-    <div className="flex justify-between gap-4">
-      <dt className="text-ink-400">{label}</dt>
-      <dd className={accent ? 'text-brass-300 font-medium' : 'text-ink-100'}>
+    <span
+      className={`inline-flex items-baseline gap-2 border rounded-sm px-3 py-1.5 text-xs ${
+        accent
+          ? 'border-brass-500/50 bg-brass-900/15'
+          : 'border-ink-700/60 bg-ink-900/40'
+      }`}
+    >
+      <span className="uppercase tracking-wider text-ink-400">{label}</span>
+      <span
+        className={
+          accent
+            ? 'text-brass-300 font-medium text-sm'
+            : 'text-ink-100 font-medium text-sm'
+        }
+      >
         {value}
-      </dd>
-    </div>
+      </span>
+    </span>
   );
 }

@@ -80,6 +80,19 @@ export function LotMap({
 
   const matchingCount = lots.filter((l) => lotMatchesFilter(l, filters)).length;
 
+  const statusCounts = useMemo(() => {
+    return lots.reduce(
+      (acc, l) => {
+        acc[l.status] += 1;
+        return acc;
+      },
+      { available: 0, reserved: 0, under_contract: 0, sold: 0 } as Record<
+        LotStatus,
+        number
+      >
+    );
+  }, [lots]);
+
   return (
     <div className="space-y-4">
       <LotFilters
@@ -94,6 +107,13 @@ export function LotMap({
         className="relative w-full bg-ink-900/60 border border-ink-700/50 rounded-sm overflow-hidden"
         style={{ aspectRatio: `${platWidth} / ${platHeight}` }}
       >
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-3 bg-ink-950/70 backdrop-blur-sm border border-ink-700/60 rounded-sm px-3 py-2">
+          <CountDot status="available" count={statusCounts.available} />
+          <CountDot status="reserved" count={statusCounts.reserved} />
+          <CountDot status="under_contract" count={statusCounts.under_contract} />
+          <CountDot status="sold" count={statusCounts.sold} />
+        </div>
+
         {platImageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -196,5 +216,20 @@ function Legend() {
         </div>
       ))}
     </div>
+  );
+}
+
+function CountDot({ status, count }: { status: LotStatus; count: number }) {
+  return (
+    <span className="flex items-center gap-1.5 text-sm">
+      <span
+        className="w-2.5 h-2.5 rounded-full border"
+        style={{
+          background: STATUS_FILL[status],
+          borderColor: STATUS_STROKE[status],
+        }}
+      />
+      <span className="text-ink-100 font-medium tabular-nums">{count}</span>
+    </span>
   );
 }

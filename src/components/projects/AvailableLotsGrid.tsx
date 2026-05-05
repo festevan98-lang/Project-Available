@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { Lot, LotStatus } from '@/lib/supabase/types';
 
 const STATUS_DOT: Record<LotStatus, string> = {
@@ -34,37 +34,68 @@ export function AvailableLotsGrid({
 
   return (
     <section>
-      <div className="flex items-baseline justify-between mb-4">
-        <h3 className="font-display text-2xl">Available lots</h3>
+      <div className="flex items-baseline justify-between mb-5">
+        <h3 className="font-display text-2xl">Available Lots</h3>
         <span className="text-ink-400 text-sm">
           {available.length} available {available.length === 1 ? 'lot' : 'lots'}
         </span>
       </div>
 
-      <ul className="border border-ink-700/50 rounded-sm divide-y divide-ink-700/40 bg-ink-900/40 overflow-hidden">
+      <div className="grid sm:grid-cols-2 gap-4">
         {available.map((lot) => (
-          <li key={lot.id}>
-            <button
-              onClick={() => onSelect(lot)}
-              className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-ink-800/40 transition text-left"
-            >
-              <span className="font-medium text-ink-50 min-w-[64px]">
-                Lot {lot.lot_number}
-              </span>
-              <span className="flex items-center gap-2 text-xs uppercase tracking-wider text-ink-300">
-                <span
-                  className={`w-2 h-2 rounded-full ${STATUS_DOT[lot.status]}`}
-                />
+          <article
+            key={lot.id}
+            className="border border-ink-700/50 bg-ink-900/40 rounded-md p-5"
+          >
+            <header className="flex items-center justify-between mb-4">
+              <h4 className="font-display text-xl">Lot {lot.lot_number}</h4>
+              <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-ink-300">
+                <span className={`w-2 h-2 rounded-full ${STATUS_DOT[lot.status]}`} />
                 {STATUS_LABEL[lot.status]}
               </span>
-              <span className="ml-auto text-brass-300 font-medium">
-                {lot.price ? `$${lot.price.toLocaleString()}` : '—'}
-              </span>
-              <ChevronRight className="w-4 h-4 text-ink-500" />
-            </button>
-          </li>
+            </header>
+
+            <div className="flex items-end justify-between gap-4">
+              <dl className="text-sm space-y-1.5 flex-1">
+                {lot.price && (
+                  <Row label="Price" value={`$${lot.price.toLocaleString()}`} />
+                )}
+                {lot.size_sqft && (
+                  <Row label="Sq Ft" value={lot.size_sqft.toLocaleString()} />
+                )}
+                {lot.dimensions && (
+                  <Row label="Dimensions" value={lot.dimensions} />
+                )}
+                {lot.phase && <Row label="Phase" value={lot.phase} />}
+              </dl>
+
+              <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                {lot.price && (
+                  <span className="font-display text-2xl text-brass-300 leading-none">
+                    ${lot.price.toLocaleString()}
+                  </span>
+                )}
+                <button
+                  onClick={() => onSelect(lot)}
+                  className="inline-flex items-center gap-1.5 bg-brass-500 hover:bg-brass-400 text-ink-950 font-medium px-4 py-2 rounded-sm text-sm transition"
+                >
+                  View Details
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </article>
         ))}
-      </ul>
+      </div>
     </section>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <dt className="text-ink-400 min-w-[88px]">{label}:</dt>
+      <dd className="text-ink-50 font-medium">{value}</dd>
+    </div>
   );
 }

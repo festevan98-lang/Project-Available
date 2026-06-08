@@ -1,0 +1,25 @@
+{
+  "source": "DroneDeploy orthomosaic export, May 11 2026",
+  "image": "/plats/laguna-heights-hero.jpg",
+  "projection": "EPSG:3857 (Web Mercator)",
+  "world_file": {
+    "pixel_size_x": 0.0186613835,
+    "rotation_y": 0,
+    "rotation_x": 0,
+    "pixel_size_y": -0.0186613840,
+    "upper_left_x": -10948146.0360019375,
+    "upper_left_y": 3024846.0753229042,
+    "note": "Coordinates apply to the ORIGINAL 107MB JPG. For the resized 2400px hero, scale pixel size by (original_width / 2400)."
+  },
+  "geographic_bbox_wgs84": {
+    "north": 26.20784332329883,
+    "south": 26.20282827343382,
+    "east": -98.34324734138559,
+    "west": -98.3488692499619
+  },
+  "approximate_size_meters": {
+    "width": 558,
+    "height": 555
+  },
+  "notes": "Used for overlaying DXF lot polygons on the aerial photo. Need two known points (lot corners visible in both DXF and ortho) to compute the DXF -> Web Mercator -> image-pixel transform."
+}

@@ -45,16 +45,16 @@ export function ProjectInteractive({
       />
 
       {project.interest_form_enabled && (
-        <div className="border border-brass-500/30 bg-brass-900/10 rounded-sm p-6 sm:p-8 text-center">
-          <h3 className="font-display text-2xl mb-2">
+        <div className="border border-brass-500/30 bg-brass-900/10 rounded-sm p-5 sm:p-8 text-center">
+          <h3 className="font-display text-xl sm:text-2xl mb-2">
             Not seeing the right lot?
           </h3>
-          <p className="text-ink-200 mb-5">
+          <p className="text-ink-200 text-sm sm:text-base mb-5">
             Join the priority list — get first look at new releases and pricing.
           </p>
           <button
             onClick={() => openInterest(null)}
-            className="bg-brass-500 hover:bg-brass-400 text-ink-950 font-medium px-6 py-3 rounded-sm transition"
+            className="w-full sm:w-auto bg-brass-500 hover:bg-brass-400 active:bg-brass-600 text-ink-950 font-medium px-6 py-3 rounded-sm transition min-h-[48px]"
           >
             Join priority list
           </button>

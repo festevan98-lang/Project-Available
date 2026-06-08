@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1",
     "@hookform/resolvers": "^3.9.0",
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.45.0",
+    "dxf-parser": "^1.1.2",
     "lucide-react": "^0.460.0",
     "next": "^15.5.0",
     "react": "^19.0.0",
@@ -24,9 +26,10 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "tailwindcss": "^3.4.0",
-    "postcss": "^8",
     "autoprefixer": "^10",
+    "postcss": "^8",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5"
   }
 }

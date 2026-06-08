@@ -104,10 +104,10 @@ export function LotMap({
       />
 
       <div
-        className="relative w-full bg-ink-900/60 border border-ink-700/50 rounded-sm overflow-hidden"
+        className="relative w-full bg-ink-900/60 border border-ink-700/50 rounded-sm overflow-hidden touch-manipulation"
         style={{ aspectRatio: `${platWidth} / ${platHeight}` }}
       >
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-3 bg-ink-950/70 backdrop-blur-sm border border-ink-700/60 rounded-sm px-3 py-2">
+        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-wrap items-center gap-x-3 gap-y-1.5 bg-ink-950/75 backdrop-blur-sm border border-ink-700/60 rounded-sm px-2.5 sm:px-3 py-1.5 sm:py-2 max-w-[calc(100%-1rem)]">
           <CountDot status="available" count={statusCounts.available} />
           <CountDot status="reserved" count={statusCounts.reserved} />
           <CountDot status="under_contract" count={statusCounts.under_contract} />
@@ -140,13 +140,23 @@ export function LotMap({
                   points={lot.polygon_points}
                   fill={STATUS_FILL[lot.status]}
                   stroke={isSelected ? '#f8ecc8' : STATUS_STROKE[lot.status]}
-                  strokeWidth={isSelected ? 3 : 1.5}
+                  strokeWidth={isSelected ? 3 : 2}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : -1}
+                  aria-label={clickable ? `Lot ${lot.lot_number}, ${lot.status}` : undefined}
                   style={{
                     opacity: matches ? 1 : 0.18,
                     cursor: clickable ? 'pointer' : 'default',
                     transition: 'opacity 200ms, stroke 150ms, stroke-width 150ms',
+                    outline: 'none',
                   }}
                   onClick={() => clickable && setPopoverLot(lot)}
+                  onKeyDown={(e) => {
+                    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      setPopoverLot(lot);
+                    }
+                  }}
                 />
                 <text
                   x={centroid.x}

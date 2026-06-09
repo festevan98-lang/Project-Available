@@ -64,13 +64,23 @@ const LOTS: PortalLot[] = LOTS_DATA.map(([n, sqft]) => ({
 const FROM_PRICE = Math.min(...LOTS.filter((l) => l.status === "available").map((l) => l.price));
 
 const PIPELINE = [
-  { id: "ad2", name: "Angelica's Dream V2", loc: "Weslaco / Border Ave", units: "47 single-family lots", stage: "Under Construction", eta: "Q3 2026", from: 209900 },
-  { id: "lmc", name: "Los Milagros on Conway", loc: "Conway Ave & SH 107, Mission", units: "48 lots / 96 duplex units", stage: "Engineering", eta: "Q1 2027", from: 0 },
-  { id: "aug", name: "Augusta Townhomes", loc: "Rio Grande Valley", units: "Townhome community", stage: "Entitlement", eta: "TBD", from: 0 },
+  { id: "ad2", name: "Angelica's Dream V2", loc: "Weslaco · Border Ave", units: "47 single-family lots", stage: "In Design · For Sale", eta: "Q3 2026", from: 315000 },
+  { id: "lmc", name: "Los Milagros on Conway", loc: "Conway Ave & SH 107 · Mission, TX", units: "48 lots · 96 duplex units", stage: "Engineering", eta: "Q1 2027", from: 1250000 },
+  { id: "aug", name: "Augusta Townhomes", loc: "Golf Course · Mission, TX", units: "Townhome community", stage: "Entitlement", eta: "TBD", from: 0 },
 ];
 const PARTNERS = [
-  { id: "opp", name: "One Place Pecan", builder: "Terraform Development", loc: "McAllen, TX", units: "Single-family", from: 215000, featured: true, slot: false },
-  { id: "ext", name: "Your project here", builder: "Open feature slot", loc: "RGV", units: "", from: 0, featured: false, slot: true },
+  {
+    id: "pecan",
+    name: "Pecan Heights",
+    builder: "Sisu Development",
+    loc: "McAllen, TX",
+    units: "14 modern townhomes · 3 BR / 2.5 BA · 1,474 sf",
+    from: 275000,
+    featured: true,
+    slot: false,
+    url: "https://sisudevelopment.com/pecan-heights/",
+  },
+  { id: "ext", name: "Your project here", builder: "Open feature slot", loc: "RGV", units: "", from: 0, featured: false, slot: true, url: "" },
 ];
 
 const money = (v: number) => v.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -84,7 +94,7 @@ const STATUS_META: Record<LotStatus, { label: string; color: string }> = {
   reserved: { label: "Reserved", color: T.amber },
   sold: { label: "Sold", color: T.sold },
 };
-const STAGE_COLOR: Record<string, string> = { "Selling Soon": T.green, "Under Construction": T.gold, "Engineering": T.gold, "Entitlement": T.dim };
+const STAGE_COLOR: Record<string, string> = { "Selling Soon": T.green, "In Design · For Sale": T.green, "Under Construction": T.gold, "Engineering": T.gold, "Entitlement": T.dim };
 const TABS = [
   { id: "now", label: "Available Now", icon: Home },
   { id: "pipeline", label: "Pipeline", icon: Layers },
@@ -642,7 +652,15 @@ function PartnerCard({ proj }: { proj: any }) {
           <Star size={11} /> Featured
         </span>
       )}
-      <h3 className="hdg" style={{ fontSize: 26, fontWeight: 600 }}>{proj.name}</h3>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="hdg" style={{ fontSize: 26, fontWeight: 600 }}>{proj.name}</h3>
+        {proj.url && (
+          <a href={proj.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full transition"
+            style={{ border: `1px solid ${T.line}`, color: T.dim, padding: "6px 12px", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}>
+            Visit site <ArrowRight size={12} strokeWidth={2.4} />
+          </a>
+        )}
+      </div>
       <div style={{ fontSize: 13, color: T.dim, marginTop: 4 }}>by {proj.builder}</div>
       <div className="flex items-center gap-2 mt-3" style={{ color: T.dim, fontSize: 14 }}><MapPin size={14} /> {proj.loc}</div>
       <div style={{ fontSize: 14, color: T.dim, marginTop: 6 }}>{proj.units}{proj.from ? ` · from ${money(proj.from)}` : ""}</div>

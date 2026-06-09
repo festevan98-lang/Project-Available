@@ -17,9 +17,8 @@ const SHOW_FINANCING = process.env.NEXT_PUBLIC_SHOW_FINANCING === 'true';
 
 const CONTACT_URL = "https://calendly.com/ferest-info/30min";
 
-// TODO: replace with the real WhatsApp number when ready. Format: digits only, with country code.
-// e.g. "19565550123" for +1 (956) 555-0123. The wa.me link opens chat directly.
-const WHATSAPP_NUMBER = "19565550123";
+// Format: digits only, with country code. wa.me opens WhatsApp chat directly.
+const WHATSAPP_NUMBER = "19562030003";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi FEREST, I'm looking at Laguna Heights — would love to chat.")}`;
 
 const LOGO_MARK = "/ferest-logo.png";

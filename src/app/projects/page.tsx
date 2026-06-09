@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import {
   MapPin, Home, Ruler, BedDouble, Bath, Check, Phone, Calculator,
-  ShieldCheck, X, ArrowRight, Building2, Layers, Clock, Star, Plus, Hammer, Search
+  ShieldCheck, X, ArrowRight, Building2, Layers, Clock, Star, Plus, Hammer, Search, MessageCircle
 } from "lucide-react";
 
 /*
@@ -12,12 +12,37 @@ import {
   Real PDF plat as the visual anchor.
 */
 
+// Master gate for "Lot + build" UI. Per-lot pricing is controlled by BUILDABLE_LOTS below.
 const SHOW_FINANCING = process.env.NEXT_PUBLIC_SHOW_FINANCING === 'true';
+
 const CONTACT_URL = "https://calendly.com/ferest-info/30min";
+
+// TODO: replace with the real WhatsApp number when ready. Format: digits only, with country code.
+// e.g. "19565550123" for +1 (956) 555-0123. The wa.me link opens chat directly.
+const WHATSAPP_NUMBER = "19565550123";
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi FEREST, I'm looking at Laguna Heights — would love to chat.")}`;
 
 const LOGO_MARK = "/ferest-logo.png";
 const PLAT_IMG = "/plats/laguna-heights-plat.png";
 const HERO_IMG = "/plats/laguna-heights-hero.jpg";
+
+// Per-lot build-inventory configuration.
+// Only lots in this map show the "Lot + build a home" option AND use these flat prices instead of the
+// universal $/sqft rate. Add an entry per lot you actually own and want to sell as a build package.
+//
+// Example (Laguna Oaks 69, 70, 71 inventory):
+//   "70": { lotOnly: 78000, buildPackageLot: 65000, buildPerSqft: 115 },
+//   "71": { lotOnly: 78000, buildPackageLot: 65000, buildPerSqft: 115 },
+//
+// (These are Laguna Oaks lots, kept as inline example. Laguna Heights gets its own entries below.)
+interface BuildableLotConfig {
+  lotOnly: number;
+  buildPackageLot: number;
+  buildPerSqft: number;
+}
+const BUILDABLE_LOTS: Record<string, BuildableLotConfig> = {
+  // Empty for Laguna Heights right now. Add entries here per lot you actually own.
+};
 
 const T = {
   ink: "#0a0b09",
@@ -138,7 +163,7 @@ export default function App() {
           phone: lead.phone,
           email: lead.email || undefined,
           timeline: lead.timeline,
-          context: SHOW_FINANCING
+          context: lotIsBuildable
             ? `Lot ${selectedLot.id} · ${productMode === 'build' ? `${plan.name} build · ` : 'Lot only · '}${money(totalPrice)} · ${financeMode === 'bank' ? 'Bank' : 'Owner finance'}`
             : `Lot ${selectedLot.id} reservation`,
           lot_number: selectedLot.id,
@@ -160,8 +185,18 @@ export default function App() {
   }
 
   const plan = PLANS.find((p) => p.id === planId) ?? PLANS[0];
-  const lotPrice = selectedLot ? selectedLot.price : 0;
-  const buildCost = SHOW_FINANCING && productMode === "build" ? plan.build : 0;
+  const buildableConfig = selectedLot ? BUILDABLE_LOTS[selectedLot.id] : null;
+  const lotIsBuildable = SHOW_FINANCING && !!buildableConfig;
+  // For buildable lots, lot price depends on whether buyer takes the build package (discounted lot)
+  // or the lot-only flat price. Non-buildable lots use the universal $/sqft.
+  const lotPrice = selectedLot
+    ? (buildableConfig
+        ? (productMode === "build" ? buildableConfig.buildPackageLot : buildableConfig.lotOnly)
+        : selectedLot.price)
+    : 0;
+  const buildCost = lotIsBuildable && productMode === "build" && buildableConfig
+    ? Math.round(buildableConfig.buildPerSqft * plan.sqft)
+    : 0;
   const totalPrice = lotPrice + buildCost;
   const downAmt = (down / 100) * totalPrice;
   const monthly = monthlyPI(totalPrice - downAmt, rate, term);
@@ -216,15 +251,28 @@ export default function App() {
               <img src={LOGO_MARK} alt="FEREST" style={{ height: 30, width: 30, objectFit: "contain" }} />
               <span className="hdg" style={{ fontSize: 14, letterSpacing: "0.32em", fontWeight: 700, color: T.text }}>FEREST</span>
             </a>
-            <a
-              href={CONTACT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full"
-              style={{ background: T.gold, color: T.ink, fontSize: 13, fontWeight: 600, padding: "9px 16px" }}
-            >
-              <Phone size={13} strokeWidth={2.4} /> Book a call
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Text us on WhatsApp"
+                className="inline-flex items-center justify-center rounded-full"
+                style={{ border: `1px solid ${T.line}`, color: T.text, padding: "8px 12px" }}
+              >
+                <MessageCircle size={14} strokeWidth={2.2} />
+                <span className="hidden sm:inline" style={{ fontSize: 13, fontWeight: 600, marginLeft: 6 }}>Text us</span>
+              </a>
+              <a
+                href={CONTACT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full"
+                style={{ background: T.gold, color: T.ink, fontSize: 13, fontWeight: 600, padding: "9px 16px" }}
+              >
+                <Phone size={13} strokeWidth={2.4} /> Book a call
+              </a>
+            </div>
           </div>
           <div className="noscroll" style={{ overflowX: "auto", maxWidth: 1180, margin: "0 auto" }}>
             <div className="flex gap-6 px-6 pb-3" style={{ minWidth: "max-content" }}>
@@ -247,7 +295,8 @@ export default function App() {
           <NowView {...{ shownLots, availCount, selectedLot, openLot, setSelectedLot, filterAvail, setFilterAvail,
             query, setQuery, sort, setSort, plan, planId, setPlanId, productMode, setProductMode,
             lotPrice, buildCost, totalPrice, financeMode, setMode, down, setDown, rate, setRate, term, setTerm,
-            downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted, submitting, submitError, submitLead }} />
+            downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted, submitting, submitError, submitLead,
+            lotIsBuildable }} />
         )}
         {tab === "pipeline" && <PipelineView />}
         {tab === "partners" && <PartnersView />}
@@ -272,7 +321,8 @@ function NowView(p: any) {
   const { shownLots, availCount, selectedLot, openLot, setSelectedLot, filterAvail, setFilterAvail,
     query, setQuery, sort, setSort, plan, planId, setPlanId, productMode, setProductMode,
     lotPrice, buildCost, totalPrice, financeMode, setMode, down, setDown, rate, setRate, term, setTerm,
-    downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted, submitting, submitError, submitLead } = p;
+    downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted, submitting, submitError, submitLead,
+    lotIsBuildable } = p;
   const minSqft = Math.min(...LOTS.map(l => l.sqft));
   const maxSqft = Math.max(...LOTS.map(l => l.sqft));
   return (
@@ -391,7 +441,7 @@ function NowView(p: any) {
               </button>
             </div>
 
-            {SHOW_FINANCING && (
+            {lotIsBuildable && (
               <div style={{ padding: "20px 32px 0" }}>
                 <div className="grid grid-cols-2 gap-1 p-1 rounded-full" style={{ background: "rgba(255,255,255,0.04)", maxWidth: 380 }}>
                   {([["lot", "Lot only"], ["build", "Lot + build"]] as const).map(([k, lbl]) => {
@@ -405,7 +455,7 @@ function NowView(p: any) {
               </div>
             )}
 
-            {SHOW_FINANCING ? (
+            {lotIsBuildable ? (
               <div className="grid md:grid-cols-2">
                 <div style={{ padding: "28px 32px", borderRight: `1px solid ${T.line}` }}>
                   {productMode === "build" ? (
@@ -512,7 +562,7 @@ function NowView(p: any) {
                     </h3>
                   </div>
                   <p style={{ color: T.dim, fontSize: 14, marginBottom: 20, maxWidth: 620 }}>
-                    {SHOW_FINANCING
+                    {lotIsBuildable
                       ? `Lot ${selectedLot.id} · ${productMode === "build" ? `${plan.name} build · ` : "Lot only · "}${money(totalPrice)} · ${financeMode === "bank" ? "Bank / partner lender" : "Owner finance"}.`
                       : <>
                           {selectedLot.sqft.toLocaleString()} sqft at {money(lotPrice)}. Or{' '}
@@ -539,7 +589,7 @@ function NowView(p: any) {
                   <div className="mt-6 flex items-center gap-3 flex-wrap">
                     <button onClick={submitLead} disabled={!canSubmit || submitting} className="inline-flex items-center gap-2 rounded-full transition"
                       style={{ background: canSubmit && !submitting ? T.gold : "rgba(224,182,74,0.3)", color: T.ink, padding: "13px 24px", fontSize: 14, fontWeight: 600, cursor: canSubmit && !submitting ? "pointer" : "not-allowed" }}>
-                      {submitting ? "Sending..." : (SHOW_FINANCING ? "Request financing" : "Reserve interest")} <ArrowRight size={15} strokeWidth={2.4} />
+                      {submitting ? "Sending..." : (lotIsBuildable ? "Request financing" : "Reserve interest")} <ArrowRight size={15} strokeWidth={2.4} />
                     </button>
                     {submitError && (
                       <span style={{ color: "#e0573f", fontSize: 13 }}>{submitError}</span>
@@ -555,13 +605,17 @@ function NowView(p: any) {
                   <p style={{ color: T.dim, marginTop: 10, maxWidth: 520, marginInline: "auto", fontSize: 15 }}>
                     Lot {selectedLot.id} · {selectedLot.sqft.toLocaleString()} sqft · {money(lotPrice)} · {lead.timeline}. We&rsquo;ll reach out at {lead.phone}.
                   </p>
-                  <div className="flex items-center justify-center gap-3 mt-6">
-                    <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer" className="rounded-full"
+                  <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
+                    <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full"
                       style={{ background: T.gold, color: T.ink, padding: "11px 20px", fontSize: 14, fontWeight: 600 }}>
-                      Book a 30-min call
+                      <Phone size={14} strokeWidth={2.4} /> Book a 30-min call
+                    </a>
+                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full"
+                      style={{ border: `1px solid ${T.line}`, color: T.text, padding: "11px 20px", fontSize: 14, fontWeight: 600 }}>
+                      <MessageCircle size={14} strokeWidth={2.4} /> Text us
                     </a>
                     <button onClick={() => { setSelectedLot(null); setLead({ name: "", phone: "", email: "", timeline: TIMELINES[0] }); }} className="rounded-full"
-                      style={{ border: `1px solid ${T.line}`, color: T.text, padding: "11px 20px", fontSize: 14, fontWeight: 500 }}>
+                      style={{ border: `1px solid ${T.line}`, color: T.dim, padding: "11px 20px", fontSize: 14, fontWeight: 500 }}>
                       Browse more lots
                     </button>
                   </div>

@@ -96,7 +96,7 @@ export default function App() {
   const [selectedLot, setSelectedLot] = useState<PortalLot | null>(null);
   const [productMode, setProductMode] = useState<'lot' | 'build'>("lot");
   const [planId, setPlanId] = useState("p1");
-  const [filterAvail, setFilterAvail] = useState(false);
+  const [filterAvail, setFilterAvail] = useState(true);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("num");
 
@@ -340,23 +340,23 @@ function NowView(p: any) {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6 items-center">
-          <div className="flex items-center gap-2 rounded-full" style={{ border: `1px solid ${T.line}`, padding: "8px 14px" }}>
+          <div className="flex items-center gap-2 rounded-full" style={{ border: `1px solid ${T.line}`, padding: "10px 16px" }}>
             <Search size={14} color={T.dim} strokeWidth={2} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Lot number" inputMode="numeric"
-              style={{ background: "transparent", border: "none", outline: "none", color: T.text, width: 90, fontSize: 13 }} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Lot #" inputMode="numeric"
+              style={{ background: "transparent", border: "none", outline: "none", color: T.text, width: 64, fontSize: 16 }} />
           </div>
           <button onClick={() => setFilterAvail((s: boolean) => !s)} className="rounded-full transition"
-            style={{ fontSize: 13, fontWeight: 500, padding: "8px 16px", background: filterAvail ? T.text : "transparent", color: filterAvail ? T.ink : T.text, border: `1px solid ${filterAvail ? T.text : T.line}` }}>
-            {filterAvail ? "Available only" : "All lots"}
+            style={{ fontSize: 14, fontWeight: 500, padding: "10px 18px", background: filterAvail ? T.text : "transparent", color: filterAvail ? T.ink : T.text, border: `1px solid ${filterAvail ? T.text : T.line}`, minHeight: 44 }}>
+            {filterAvail ? "Available only" : "Show all 142"}
           </button>
           <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-full transition"
-            style={{ fontSize: 13, fontWeight: 500, padding: "8px 16px", background: "transparent", color: T.text, border: `1px solid ${T.line}`, appearance: "none" }}>
+            style={{ fontSize: 14, fontWeight: 500, padding: "10px 18px", background: "transparent", color: T.text, border: `1px solid ${T.line}`, appearance: "none", minHeight: 44 }}>
             <option value="num" style={{ color: "#000" }}>Lot number</option>
             <option value="priceup" style={{ color: "#000" }}>Price · low to high</option>
             <option value="size" style={{ color: "#000" }}>Size · largest first</option>
           </select>
           <div className="ml-auto text-sm" style={{ color: T.dim }}>
-            <span style={{ color: T.text, fontWeight: 600 }}>{shownLots.length}</span> shown
+            <span style={{ color: T.text, fontWeight: 600 }}>{shownLots.length}</span> {filterAvail ? "available" : "shown"}
           </div>
         </div>
 
@@ -457,7 +457,7 @@ function NowView(p: any) {
                   <div className="grid grid-cols-2 gap-3 mt-3">
                     <Control label="Rate %">
                       <input type="number" step="0.125" value={rate} onChange={(e) => setRate(Number(e.target.value))}
-                        className="w-full rounded-lg px-3 py-2.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 14 }} />
+                        className="w-full rounded-lg px-3 py-2.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 16 }} />
                     </Control>
                     <Control label="Term">
                       <select value={term} onChange={(e) => setTerm(Number(e.target.value))} className="w-full rounded-lg px-3 py-2.5"
@@ -512,9 +512,9 @@ function NowView(p: any) {
                         </>}
                   </p>
                   <div className="grid md:grid-cols-3 gap-3 mb-4">
-                    <input placeholder="Full name" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} className="rounded-lg px-4 py-3" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 14 }} />
-                    <input placeholder="Phone" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} className="rounded-lg px-4 py-3" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 14 }} />
-                    <input placeholder="Email (optional)" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} className="rounded-lg px-4 py-3" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 14 }} />
+                    <input placeholder="Full name" autoComplete="name" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} className="rounded-lg px-4 py-3.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 16 }} />
+                    <input placeholder="Phone" type="tel" inputMode="tel" autoComplete="tel" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} className="rounded-lg px-4 py-3.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 16 }} />
+                    <input placeholder="Email (optional)" type="email" inputMode="email" autoComplete="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} className="rounded-lg px-4 py-3.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 16 }} />
                   </div>
                   <Control label="How fast do you want to move?">
                     <div className="flex flex-wrap gap-2">
@@ -722,8 +722,8 @@ function InterestForm({ context, partner }: { context: string; partner?: boolean
   return (
     <div className="mt-5 space-y-3 fade">
       <div className="grid grid-cols-2 gap-3">
-        <input placeholder={partner ? "Your name" : "Full name"} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="rounded-lg px-3 py-2.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 14 }} />
-        <input placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} className="rounded-lg px-3 py-2.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 14 }} />
+        <input placeholder={partner ? "Your name" : "Full name"} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="rounded-lg px-3 py-2.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 16 }} />
+        <input placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} className="rounded-lg px-3 py-2.5" style={{ background: "transparent", border: `1px solid ${T.line}`, color: T.text, fontSize: 16 }} />
       </div>
       <div className="flex flex-wrap gap-2">
         {TIMELINES.map((t) => { const on = f.timeline === t;
@@ -744,39 +744,47 @@ function InterestForm({ context, partner }: { context: string; partner?: boolean
 function LotGrid({ lots, selectedLot, onOpen }: { lots: PortalLot[]; selectedLot: PortalLot | null; onOpen: (l: PortalLot) => void }) {
   const [hover, setHover] = useState<string | null>(null);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(56px, 1fr))", gap: 6 }}>
-      {lots.map((l) => {
-        const m = STATUS_META[l.status];
-        const sel = selectedLot && selectedLot.id === l.id;
-        const sold = l.status === "sold";
-        const showTip = hover === l.id;
-        return (
-          <div key={l.id} style={{ position: "relative" }}>
-            {showTip && !sold && (
-              <div className="fade" style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: T.ink, border: `1px solid ${T.lineStrong}`, borderRadius: 8, padding: "8px 12px", whiteSpace: "nowrap", zIndex: 20, boxShadow: "0 8px 24px rgba(0,0,0,0.6)", pointerEvents: "none" }}>
-                <div style={{ fontSize: 11, fontWeight: 700 }}>Lot {l.id}</div>
-                <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{l.sqft.toLocaleString()} sqft · {money(l.price)}</div>
-              </div>
-            )}
-            <button disabled={sold} onClick={() => onOpen(l)} onMouseEnter={() => setHover(l.id)} onMouseLeave={() => setHover(null)}
-              className="lotbtn rounded-md flex flex-col items-center justify-center w-full"
-              style={{
-                background: sel ? T.gold : "transparent",
-                border: `1px solid ${sel ? T.gold : sold ? "rgba(255,255,255,0.06)" : m.color + "55"}`,
-                opacity: sold ? 0.32 : 1,
-                cursor: sold ? "not-allowed" : "pointer",
-                minHeight: 48,
-                padding: "6px 2px",
-                position: "relative",
-              }}>
-              {!sel && !sold && <span style={{ position: "absolute", top: 4, right: 4, width: 4, height: 4, borderRadius: 2, background: m.color }} />}
-              <span style={{ fontSize: 12, fontWeight: 600, color: sel ? T.ink : T.text, lineHeight: 1 }}>{l.id}</span>
-              {!sold && <span style={{ fontSize: 9, color: sel ? T.ink : T.dim, marginTop: 2, fontWeight: 500 }}>{Math.round(l.price / 1000)}k</span>}
-            </button>
-          </div>
-        );
-      })}
-    </div>
+    <>
+      <style>{`
+        .lot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 5px; }
+        @media (min-width: 640px) { .lot-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; } }
+      `}</style>
+      <div className="lot-grid">
+        {lots.map((l) => {
+          const m = STATUS_META[l.status];
+          const sel = selectedLot && selectedLot.id === l.id;
+          const sold = l.status === "sold";
+          const showTip = hover === l.id;
+          return (
+            <div key={l.id} style={{ position: "relative" }}>
+              {showTip && !sold && (
+                <div className="fade" style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: T.ink, border: `1px solid ${T.lineStrong}`, borderRadius: 8, padding: "8px 12px", whiteSpace: "nowrap", zIndex: 20, boxShadow: "0 8px 24px rgba(0,0,0,0.6)", pointerEvents: "none" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700 }}>Lot {l.id}</div>
+                  <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{l.sqft.toLocaleString()} sqft · {money(l.price)}</div>
+                </div>
+              )}
+              <button disabled={sold} onClick={() => onOpen(l)} onMouseEnter={() => setHover(l.id)} onMouseLeave={() => setHover(null)}
+                aria-label={sold ? `Lot ${l.id} sold` : `Lot ${l.id}, ${l.sqft.toLocaleString()} sqft, ${money(l.price)}`}
+                className="lotbtn rounded-lg flex flex-col items-center justify-center w-full"
+                style={{
+                  background: sel ? T.gold : "transparent",
+                  border: `1px solid ${sel ? T.gold : sold ? "rgba(255,255,255,0.06)" : m.color + "55"}`,
+                  opacity: sold ? 0.32 : 1,
+                  cursor: sold ? "not-allowed" : "pointer",
+                  minHeight: 46,
+                  padding: "6px 2px",
+                  position: "relative",
+                  WebkitTapHighlightColor: "transparent",
+                }}>
+                {!sel && !sold && <span style={{ position: "absolute", top: 4, right: 4, width: 4, height: 4, borderRadius: 2, background: m.color }} />}
+                <span style={{ fontSize: 13, fontWeight: 600, color: sel ? T.ink : T.text, lineHeight: 1 }}>{l.id}</span>
+                {!sold && <span style={{ fontSize: 10, color: sel ? T.ink : T.dim, marginTop: 3, fontWeight: 500 }}>{Math.round(l.price / 1000)}k</span>}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 

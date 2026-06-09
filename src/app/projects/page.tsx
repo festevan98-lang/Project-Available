@@ -14,9 +14,8 @@ import {
 */
 
 const SHOW_FINANCING = process.env.NEXT_PUBLIC_SHOW_FINANCING === 'true';
-// TODO: replace with real Calendly URL when you have it.
 // Used by the header CTA and lead-form "book a call instead" link.
-const CONTACT_URL = "https://www.ferest.dev";
+const CONTACT_URL = "https://calendly.com/ferest-info/30min";
 
 const LOGO_MARK = "/ferest-logo.png";
 const LOGO_WORD = "/ferest-logo.png";

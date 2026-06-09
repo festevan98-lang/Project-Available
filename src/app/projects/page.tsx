@@ -112,6 +112,42 @@ export default function App() {
 
   const [lead, setLead] = useState({ name: "", phone: "", email: "", timeline: TIMELINES[0] });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  async function submitLead() {
+    if (!selectedLot || !canSubmit) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: lead.name,
+          phone: lead.phone,
+          email: lead.email || undefined,
+          timeline: lead.timeline,
+          context: SHOW_FINANCING
+            ? `Lot ${selectedLot.id} · ${productMode === 'build' ? `${plan.name} build · ` : 'Lot only · '}${money(totalPrice)} · ${financeMode === 'bank' ? 'Bank' : 'Owner finance'}`
+            : `Lot ${selectedLot.id} reservation`,
+          lot_number: selectedLot.id,
+          project_slug: 'laguna-heights',
+          source: 'portal',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSubmitError(data.errorDetail ?? data.error ?? `Server error (${res.status})`);
+        return;
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const plan = PLANS.find((p) => p.id === planId) ?? PLANS[0];
   const lotPrice = selectedLot ? selectedLot.price : 0;
@@ -201,7 +237,7 @@ export default function App() {
           <NowView {...{ shownLots, availCount, selectedLot, openLot, setSelectedLot, filterAvail, setFilterAvail,
             query, setQuery, sort, setSort, plan, planId, setPlanId, productMode, setProductMode,
             lotPrice, buildCost, totalPrice, financeMode, setMode, down, setDown, rate, setRate, term, setTerm,
-            downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted }} />
+            downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted, submitting, submitError, submitLead }} />
         )}
         {tab === "pipeline" && <PipelineView />}
         {tab === "partners" && <PartnersView />}
@@ -226,26 +262,42 @@ function NowView(p: any) {
   const { shownLots, availCount, selectedLot, openLot, setSelectedLot, filterAvail, setFilterAvail,
     query, setQuery, sort, setSort, plan, planId, setPlanId, productMode, setProductMode,
     lotPrice, buildCost, totalPrice, financeMode, setMode, down, setDown, rate, setRate, term, setTerm,
-    downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted } = p;
+    downAmt, monthly, lead, setLead, canSubmit, submitted, setSubmitted, submitting, submitError, submitLead } = p;
   const minSqft = Math.min(...LOTS.map(l => l.sqft));
   const maxSqft = Math.max(...LOTS.map(l => l.sqft));
   return (
     <>
-      {/* HERO */}
-      <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "80px 24px 48px" }}>
-        <div className="flex items-center gap-3 mb-6">
-          <span className="eyebrow">{SUBDIVISION.name}</span>
-          <span style={{ width: 18, height: 1, background: T.lineStrong }} />
-          <span style={{ fontSize: 12, color: T.dim }}>{SUBDIVISION.location}</span>
+      {/* HERO - aerial photo behind the headline */}
+      <section className="fade" style={{ position: "relative", overflow: "hidden", marginBottom: 24 }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `url(${HERO_IMG})`,
+          backgroundSize: "cover", backgroundPosition: "center",
+          opacity: 0.55, zIndex: 0,
+        }} aria-hidden />
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+          background: `linear-gradient(180deg, rgba(10,11,9,0.35) 0%, rgba(10,11,9,0.55) 45%, ${T.ink} 100%)`,
+        }} aria-hidden />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 1180, margin: "0 auto", padding: "120px 24px 80px" }}>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="eyebrow" style={{ color: T.text, opacity: 0.85 }}>{SUBDIVISION.name}</span>
+            <span style={{ width: 18, height: 1, background: "rgba(255,255,255,0.4)" }} />
+            <span style={{ fontSize: 12, color: T.text, opacity: 0.7 }}>{SUBDIVISION.location}</span>
+          </div>
+          <h1 className="hdg display" style={{ fontSize: "clamp(3rem, 8vw, 6.4rem)", fontWeight: 700, maxWidth: 920, textShadow: "0 2px 32px rgba(0,0,0,0.45)" }}>
+            Own the lot.<br />
+            <span style={{ color: T.gold }}>Build the home.</span>
+          </h1>
+          <p style={{ color: T.text, opacity: 0.85, maxWidth: 620, marginTop: 32, fontSize: 19, lineHeight: 1.5, fontWeight: 400, textShadow: "0 1px 12px rgba(0,0,0,0.5)" }}>
+            {SUBDIVISION.blurb}
+          </p>
         </div>
-        <h1 className="hdg display" style={{ fontSize: "clamp(2.8rem, 7vw, 5.6rem)", fontWeight: 700, maxWidth: 920 }}>
-          Own the lot.<br />
-          <span style={{ color: T.gold }}>Build the home.</span>
-        </h1>
-        <p style={{ color: T.dim, maxWidth: 620, marginTop: 32, fontSize: 19, lineHeight: 1.5, fontWeight: 400 }}>
-          {SUBDIVISION.blurb}
-        </p>
-        <div className="flex flex-wrap gap-12 mt-12" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 28 }}>
+      </section>
+
+      {/* STATS STRIP */}
+      <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "0 24px 48px" }}>
+        <div className="flex flex-wrap gap-x-12 gap-y-6" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 28 }}>
           <Stat label="Starting at" value={money(FROM_PRICE)} accent />
           <Stat label="Available" value={`${availCount} lots`} />
           <Stat label="Range" value={`${minSqft.toLocaleString()}–${maxSqft.toLocaleString()} sqft`} />
@@ -474,10 +526,15 @@ function NowView(p: any) {
                       })}
                     </div>
                   </Control>
-                  <button onClick={() => canSubmit && setSubmitted(true)} disabled={!canSubmit} className="mt-6 inline-flex items-center gap-2 rounded-full transition"
-                    style={{ background: canSubmit ? T.gold : "rgba(224,182,74,0.3)", color: T.ink, padding: "13px 24px", fontSize: 14, fontWeight: 600, cursor: canSubmit ? "pointer" : "not-allowed" }}>
-                    {SHOW_FINANCING ? "Request financing" : "Reserve interest"} <ArrowRight size={15} strokeWidth={2.4} />
-                  </button>
+                  <div className="mt-6 flex items-center gap-3 flex-wrap">
+                    <button onClick={submitLead} disabled={!canSubmit || submitting} className="inline-flex items-center gap-2 rounded-full transition"
+                      style={{ background: canSubmit && !submitting ? T.gold : "rgba(224,182,74,0.3)", color: T.ink, padding: "13px 24px", fontSize: 14, fontWeight: 600, cursor: canSubmit && !submitting ? "pointer" : "not-allowed" }}>
+                      {submitting ? "Sending..." : (SHOW_FINANCING ? "Request financing" : "Reserve interest")} <ArrowRight size={15} strokeWidth={2.4} />
+                    </button>
+                    {submitError && (
+                      <span style={{ color: "#e0573f", fontSize: 13 }}>{submitError}</span>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="text-center fade" style={{ padding: "24px 0" }}>
@@ -621,7 +678,39 @@ function ListSlot() {
 function InterestForm({ context, partner }: { context: string; partner?: boolean }) {
   const [f, setF] = useState({ name: "", phone: "", timeline: TIMELINES[0] });
   const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const ok = f.name.trim() && f.phone.trim().length >= 7;
+
+  async function submit() {
+    if (!ok || busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: f.name,
+          phone: f.phone,
+          timeline: f.timeline,
+          context,
+          source: 'portal',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(data.errorDetail ?? data.error ?? `Server error (${res.status})`);
+        return;
+      }
+      setDone(true);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (done) return (
     <div className="mt-5 fade">
       <div className="flex items-center gap-2" style={{ color: T.gold }}>
@@ -641,10 +730,13 @@ function InterestForm({ context, partner }: { context: string; partner?: boolean
           return (<button key={t} onClick={() => setF({ ...f, timeline: t })} className="rounded-full transition"
             style={{ padding: "5px 12px", fontSize: 12, fontWeight: 500, background: on ? T.text : "transparent", color: on ? T.ink : T.dim, border: `1px solid ${on ? T.text : T.line}` }}>{t}</button>); })}
       </div>
-      <button onClick={() => ok && setDone(true)} disabled={!ok} className="inline-flex items-center gap-2 rounded-full"
-        style={{ background: ok ? T.gold : "rgba(224,182,74,0.3)", color: T.ink, padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: ok ? "pointer" : "not-allowed" }}>
-        Submit <ArrowRight size={14} strokeWidth={2.4} />
-      </button>
+      <div className="flex items-center gap-3 flex-wrap">
+        <button onClick={submit} disabled={!ok || busy} className="inline-flex items-center gap-2 rounded-full"
+          style={{ background: ok && !busy ? T.gold : "rgba(224,182,74,0.3)", color: T.ink, padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: ok && !busy ? "pointer" : "not-allowed" }}>
+          {busy ? "Sending..." : "Submit"} <ArrowRight size={14} strokeWidth={2.4} />
+        </button>
+        {err && <span style={{ color: "#e0573f", fontSize: 12 }}>{err}</span>}
+      </div>
     </div>
   );
 }

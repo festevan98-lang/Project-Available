@@ -33,6 +33,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Lots
             </a>
             <a
+              href="/admin/plat-analyzer"
+              className="px-3 py-2 min-h-[44px] inline-flex items-center text-ink-200 hover:text-brass-400 transition rounded-sm"
+            >
+              Plat Analyzer
+            </a>
+            <a
               href="/admin/dxf-studio"
               className="px-3 py-2 min-h-[44px] inline-flex items-center text-ink-200 hover:text-brass-400 transition rounded-sm"
             >

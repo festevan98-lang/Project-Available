@@ -782,9 +782,12 @@ function PipelineView() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function PipelineCard({ proj }: { proj: any }) {
+function PipelineCard({ proj }: { proj: WholesaleDeal }) {
   const [open, setOpen] = useState(false);
-  const color = STAGE_COLOR[proj.stage] || T.dim;
+  const color = STAGE_COLOR[proj.stage] || T.gold;
+  const priceLabel = proj.from > 0
+    ? `from ${money(proj.from)}${proj.perUnit ? ` ${proj.perUnit}` : ''}`
+    : 'Inquire for pricing';
   return (
     <div style={{ background: T.panelSolid, border: `1px solid ${T.line}`, borderRadius: 18, padding: 28 }}>
       <div className="flex items-center justify-between mb-5">
@@ -793,16 +796,26 @@ function PipelineCard({ proj }: { proj: any }) {
         </span>
         <span style={{ fontSize: 12, color: T.dim }}>{proj.eta}</span>
       </div>
-      <h3 className="hdg" style={{ fontSize: 26, fontWeight: 600 }}>{proj.name}</h3>
+      <h3 className="hdg" style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.015em' }}>{proj.name}</h3>
       <div className="flex items-center gap-2 mt-2" style={{ color: T.dim, fontSize: 14 }}><MapPin size={14} /> {proj.loc}</div>
-      <div style={{ fontSize: 14, color: T.dim, marginTop: 8 }}>
-        {proj.units}{proj.from ? ` · from ${money(proj.from)}` : ""}
+      <div style={{ fontSize: 14, marginTop: 10, color: T.text }}>{proj.units}</div>
+      {proj.blurb && (
+        <p style={{ fontSize: 13.5, lineHeight: 1.55, color: T.dim, marginTop: 14 }}>{proj.blurb}</p>
+      )}
+      <div className="flex items-baseline gap-3 mt-5" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+        <span className="eyebrow" style={{ fontSize: 10 }}>Pricing</span>
+        <span className="hdg tabular-nums" style={{ fontSize: proj.from > 0 ? 17 : 14, fontWeight: 600, color: proj.from > 0 ? T.gold : T.text }}>{priceLabel}</span>
       </div>
       {!open ? (
-        <button onClick={() => setOpen(true)} className="mt-6 inline-flex items-center gap-2 rounded-full" style={{ background: T.gold, color: T.ink, padding: "10px 18px", fontSize: 13, fontWeight: 600 }}>
-          Reserve early interest <ArrowRight size={14} strokeWidth={2.4} />
-        </button>
-      ) : <InterestForm context={`Pipeline · ${proj.name}`} />}
+        <div className="flex flex-wrap gap-2 mt-5">
+          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-full" style={{ background: T.gold, color: T.ink, padding: "10px 18px", fontSize: 13, fontWeight: 600 }}>
+            Request package <ArrowRight size={14} strokeWidth={2.4} />
+          </button>
+          <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.text, padding: "10px 18px", fontSize: 13, fontWeight: 500 }}>
+            <Phone size={12} strokeWidth={2.2} /> Call
+          </a>
+        </div>
+      ) : <InterestForm context={`Wholesale · ${proj.name}`} />}
     </div>
   );
 }

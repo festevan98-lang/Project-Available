@@ -109,54 +109,65 @@ interface WholesaleDeal {
   id: string;
   name: string;
   loc: string;
-  units: string;
+  specs: string[];
   stage: string;
   eta: string;
   from: number;
   perUnit?: string;
   blurb?: string;
+  hook: { big: string; small: string };
+  tone: 'amber' | 'green' | 'blue' | 'rose';
+  heroImage?: string;
 }
 const PIPELINE: WholesaleDeal[] = [
   {
     id: "milagros",
     name: "Los Milagros on Conway",
-    loc: "Conway Ave (SH 107) at Mile 3 · Mission, TX",
-    units: "48 duplex-entitled lots · 96 units · 9.37 acres",
+    loc: "Conway Ave at Mile 3 · Mission, TX",
+    specs: ["48 duplex lots", "96 units", "9.37 acres", "Shovel-ready"],
     stage: "Engineering · For Sale",
     eta: "Ready",
     from: 78500,
-    perUnit: "per duplex-entitled lot",
-    blurb: "Shovel-ready 48-lot duplex subdivision. No rezone risk under county jurisdiction. All-in basis $54k vs $78.5k asking = projected 46% ROI on lot sales alone. Engineered by FEREST.",
+    perUnit: "per lot",
+    blurb: "All-in basis $54k vs $78.5k ask. No rezone risk under county jurisdiction. Engineered by FEREST.",
+    hook: { big: "46% ROI", small: "projected on lot sales · before vertical or hold" },
+    tone: "amber",
   },
   {
     id: "angelica",
     name: "Angelica's Dream V2",
     loc: "Mile 4 1/2 West Rd · Weslaco/Alamo, TX",
-    units: "68 single-family lots · 10 acres · ~7,259 sf typical",
+    specs: ["68 SFR lots", "10 acres", "~7,259 sf typical", "In design"],
     stage: "In Design · For Sale",
     eta: "Q3 2026",
     from: 0,
-    blurb: "10-acre subdivision designed for 68 single-family lots in the Weslaco/Alamo corridor. City sewer and water at the perimeter, streamlined path to construction. Looking for builder-developer partner.",
+    blurb: "10 acres designed for 68 single-family lots in the Weslaco/Alamo corridor. City sewer and water at the perimeter. Looking for a builder-developer partner.",
+    hook: { big: "68 lots", small: "designed and ready to platt" },
+    tone: "green",
   },
   {
     id: "conway22",
     name: "22-Acre Conway Mile 3",
-    loc: "Mile 3 North Rd & Mayberry Rd · Hidalgo County",
-    units: "22.13 acres net (23.11 gross) · Commercial / Mixed",
+    loc: "Mile 3 N & Mayberry · Hidalgo County",
+    specs: ["22.13 ac net", "Commercial", "Hard corner", "Surveyed"],
     stage: "Boundary surveyed",
     eta: "Ready",
     from: 0,
-    blurb: "22 acres at Mile 3 North & Mayberry. Boundary surveyed, Flood Zone C, hard corner with road frontage in fast-growing Sharyland corridor. Ideal for retail, multifamily, or land bank.",
+    blurb: "Hard corner with road frontage on Mile 3 N. Flood Zone C. Sharyland corridor — fast growth. Retail, multifamily, or land bank.",
+    hook: { big: "22 acres", small: "commercial · hard corner · road frontage" },
+    tone: "blue",
   },
   {
     id: "augusta",
     name: "Augusta Townhomes",
-    loc: "E. Griffin Pkwy (FM-495) & Augusta Dr. · Mission, TX",
-    units: "30 platted townhome lots · 2.727 ac anchor · 1,851–4,071 sf range",
+    loc: "FM-495 & Augusta Dr · Mission, TX",
+    specs: ["30 platted lots", "2.727 ac anchor", "Townhome product", "Shovel-ready"],
     stage: "Platted",
     eta: "Shovel-ready",
     from: 0,
-    blurb: "Fully platted 30-lot townhome community at a high-visibility FM-495 corner. Internal 50-ft ROW with cul-de-sac, dedicated drainage tract, lots sized for efficient attached product. Shovel-ready for a builder.",
+    blurb: "Fully platted 30-lot townhome community at a high-visibility FM-495 corner. Internal 50-ft ROW with cul-de-sac, dedicated drainage tract.",
+    hook: { big: "Shovel-ready", small: "30 platted townhome lots · just bring builder" },
+    tone: "rose",
   },
 ];
 const PARTNERS = [
@@ -782,41 +793,94 @@ function PipelineView() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const TONE_GRADIENTS: Record<WholesaleDeal['tone'], string> = {
+  amber: 'linear-gradient(135deg, rgba(224,182,74,0.42) 0%, rgba(184,146,47,0.18) 55%, rgba(15,16,14,0.85) 100%)',
+  green: 'linear-gradient(135deg, rgba(79,177,94,0.32) 0%, rgba(48,110,60,0.18) 55%, rgba(15,16,14,0.85) 100%)',
+  blue:  'linear-gradient(135deg, rgba(95,138,196,0.35) 0%, rgba(54,82,128,0.18) 55%, rgba(15,16,14,0.85) 100%)',
+  rose:  'linear-gradient(135deg, rgba(196,108,108,0.32) 0%, rgba(140,72,72,0.18) 55%, rgba(15,16,14,0.85) 100%)',
+};
+
 function PipelineCard({ proj }: { proj: WholesaleDeal }) {
   const [open, setOpen] = useState(false);
-  const color = STAGE_COLOR[proj.stage] || T.gold;
-  const priceLabel = proj.from > 0
-    ? `from ${money(proj.from)}${proj.perUnit ? ` ${proj.perUnit}` : ''}`
-    : 'Inquire for pricing';
+  const stageColor = STAGE_COLOR[proj.stage] || T.gold;
+  const priceLabel = proj.from > 0 ? money(proj.from) : 'Inquire';
+  const heroBg = proj.heroImage
+    ? `linear-gradient(180deg, rgba(15,16,14,0.2) 0%, rgba(15,16,14,0.85) 100%), url(${proj.heroImage}) center/cover`
+    : TONE_GRADIENTS[proj.tone];
+
   return (
-    <div style={{ background: T.panelSolid, border: `1px solid ${T.line}`, borderRadius: 18, padding: 28 }}>
-      <div className="flex items-center justify-between mb-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.04)", color, padding: "5px 12px", fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 600 }}>
-          <Hammer size={11} />{proj.stage}
-        </span>
-        <span style={{ fontSize: 12, color: T.dim }}>{proj.eta}</span>
-      </div>
-      <h3 className="hdg" style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.015em' }}>{proj.name}</h3>
-      <div className="flex items-center gap-2 mt-2" style={{ color: T.dim, fontSize: 14 }}><MapPin size={14} /> {proj.loc}</div>
-      <div style={{ fontSize: 14, marginTop: 10, color: T.text }}>{proj.units}</div>
-      {proj.blurb && (
-        <p style={{ fontSize: 13.5, lineHeight: 1.55, color: T.dim, marginTop: 14 }}>{proj.blurb}</p>
-      )}
-      <div className="flex items-baseline gap-3 mt-5" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
-        <span className="eyebrow" style={{ fontSize: 10 }}>Pricing</span>
-        <span className="hdg tabular-nums" style={{ fontSize: proj.from > 0 ? 17 : 14, fontWeight: 600, color: proj.from > 0 ? T.gold : T.text }}>{priceLabel}</span>
-      </div>
-      {!open ? (
-        <div className="flex flex-wrap gap-2 mt-5">
-          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-full" style={{ background: T.gold, color: T.ink, padding: "10px 18px", fontSize: 13, fontWeight: 600 }}>
-            Request package <ArrowRight size={14} strokeWidth={2.4} />
-          </button>
-          <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.text, padding: "10px 18px", fontSize: 13, fontWeight: 500 }}>
-            <Phone size={12} strokeWidth={2.2} /> Call
-          </a>
+    <article style={{ background: T.panelSolid, border: `1px solid ${T.line}`, borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      {/* HERO */}
+      <div style={{ background: heroBg, aspectRatio: "16 / 9", position: "relative", padding: 22, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+        <div className="flex items-start justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.55)", color: stageColor, padding: "5px 11px", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, backdropFilter: "blur(8px)" }}>
+            <Hammer size={10} strokeWidth={2.4} /> {proj.stage}
+          </span>
+          <span style={{ color: T.text, opacity: 0.85, fontSize: 12, fontWeight: 500, background: "rgba(0,0,0,0.4)", padding: "5px 11px", borderRadius: 999, backdropFilter: "blur(8px)" }}>
+            {proj.eta}
+          </span>
         </div>
-      ) : <InterestForm context={`Wholesale · ${proj.name}`} />}
-    </div>
+        <div>
+          <h3 className="hdg display" style={{ fontSize: "clamp(1.6rem, 3.4vw, 2rem)", fontWeight: 700, letterSpacing: "-0.025em", textShadow: "0 2px 16px rgba(0,0,0,0.5)", lineHeight: 1.05 }}>
+            {proj.name}
+          </h3>
+          <div className="flex items-center gap-2 mt-2" style={{ color: T.text, opacity: 0.9, fontSize: 13 }}>
+            <MapPin size={13} /> {proj.loc}
+          </div>
+        </div>
+      </div>
+
+      {/* HOOK — the big number */}
+      <div style={{ padding: "24px 24px 16px" }}>
+        <div className="eyebrow" style={{ fontSize: 10 }}>The play</div>
+        <div className="hdg tabular-nums" style={{ fontSize: "clamp(2rem, 4.2vw, 2.6rem)", fontWeight: 700, color: T.gold, letterSpacing: "-0.03em", marginTop: 4, lineHeight: 1.05 }}>
+          {proj.hook.big}
+        </div>
+        <div style={{ fontSize: 13, color: T.dim, marginTop: 4, lineHeight: 1.4 }}>{proj.hook.small}</div>
+      </div>
+
+      {/* SPECS */}
+      <div className="flex flex-wrap gap-1.5" style={{ padding: "0 24px 16px" }}>
+        {proj.specs.map((s, i) => (
+          <span key={i} className="inline-flex items-center gap-1.5 rounded-full" style={{ border: `1px solid ${T.line}`, padding: "5px 11px", fontSize: 12, color: T.text, fontWeight: 500 }}>
+            <span aria-hidden style={{ width: 4, height: 4, borderRadius: 2, background: T.gold }} />
+            {s}
+          </span>
+        ))}
+      </div>
+
+      {/* BLURB */}
+      {proj.blurb && (
+        <p style={{ fontSize: 13.5, lineHeight: 1.55, color: T.dim, padding: "0 24px 20px" }}>{proj.blurb}</p>
+      )}
+
+      {/* FOOTER — pricing + CTA */}
+      <div style={{ marginTop: "auto", padding: "18px 24px 24px", borderTop: `1px solid ${T.line}`, background: "rgba(255,255,255,0.015)" }}>
+        {!open ? (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="eyebrow" style={{ fontSize: 10 }}>Pricing</div>
+              <div className="hdg tabular-nums" style={{ fontSize: 19, fontWeight: 700, color: proj.from > 0 ? T.gold : T.text, marginTop: 2 }}>
+                {priceLabel}
+                {proj.perUnit && proj.from > 0 && (
+                  <span style={{ fontSize: 12, color: T.dim, marginLeft: 6, fontWeight: 400 }}>{proj.perUnit}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer" aria-label="Call" className="inline-flex items-center justify-center rounded-full" style={{ border: `1px solid ${T.line}`, color: T.text, padding: "11px 14px" }}>
+                <Phone size={14} strokeWidth={2.2} />
+              </a>
+              <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-full" style={{ background: T.gold, color: T.ink, padding: "11px 20px", fontSize: 14, fontWeight: 700, letterSpacing: "-0.01em" }}>
+                See the deal <ArrowRight size={15} strokeWidth={2.4} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <InterestForm context={`Wholesale · ${proj.name}`} />
+        )}
+      </div>
+    </article>
   );
 }
 

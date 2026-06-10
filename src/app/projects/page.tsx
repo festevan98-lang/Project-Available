@@ -64,7 +64,7 @@ const PRICE_PSF = 11.75;
 const SUBDIVISION = {
   name: "Laguna Heights",
   location: "Mission, TX",
-  blurb: "Twenty-seven acres of the West Addition to Sharyland, platted into 142 lots and engineered in-house. Buy land. Build later. Or build with us now.",
+  blurb: "27 acres. 142 lots. Platted, entitled, and engineered in-house by FEREST. Buy raw land. Build later. Or have us hand you keys.",
 };
 
 const PLANS = [
@@ -172,13 +172,24 @@ const PIPELINE: WholesaleDeal[] = [
 ];
 const PARTNERS = [
   {
+    id: "augusta",
+    name: "Augusta Townhomes",
+    builder: "FEREST · open to builder partner",
+    loc: "FM-495 & Augusta Dr · Mission, TX",
+    units: "30 platted townhome lots · 2.727 ac anchor · shovel-ready",
+    from: 0,
+    featured: true,
+    slot: false,
+    url: "",
+  },
+  {
     id: "pecan",
     name: "Pecan Heights",
     builder: "Sisu Development",
     loc: "McAllen, TX",
     units: "14 modern townhomes · 3 BR / 2.5 BA · 1,474 sf",
     from: 275000,
-    featured: true,
+    featured: false,
     slot: false,
     url: "https://sisudevelopment.com/pecan-heights/",
   },
@@ -446,10 +457,10 @@ function NowView(p: any) {
       <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 24px 24px" }}>
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <div className="eyebrow" style={{ color: T.gold }}>Ready to build</div>
-            <h2 className="hdg" style={{ fontSize: "clamp(1.8rem, 3.4vw, 2.6rem)", fontWeight: 600, marginTop: 8 }}>FEREST inventory</h2>
+            <div className="eyebrow" style={{ color: T.gold }}>Off-market · Owned by FEREST</div>
+            <h2 className="hdg" style={{ fontSize: "clamp(1.8rem, 3.4vw, 2.6rem)", fontWeight: 600, marginTop: 8 }}>Five lots, ready today</h2>
             <p style={{ color: T.dim, marginTop: 12, fontSize: 15, maxWidth: 580, lineHeight: 1.5 }}>
-              Lots we own and control. Buy the land flat or build with us. Limited inventory across Laguna Oaks Phase II and Laguna Heights.
+              Inventory FEREST owns and controls across Laguna Oaks Phase II and Laguna Heights. Take the lot at a flat number or let us build the home. Not on MLS.
             </p>
           </div>
         </div>
@@ -735,16 +746,16 @@ function InventoryCard({ lot }: { lot: InventoryLot }) {
         Lot {lot.lotNumber}
         <span style={{ fontSize: 13, color: T.dim, fontWeight: 400 }}>· {lot.sqft.toLocaleString()} sqft</span>
       </div>
-      <div className="grid grid-cols-2 gap-4 mt-5" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 16 }}>
+      <div className="grid grid-cols-2 gap-4 mt-5" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 18 }}>
         <div>
           <div className="eyebrow" style={{ fontSize: 10 }}>Lot only</div>
-          <div className="hdg tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: T.gold, marginTop: 4 }}>{money(lot.lotOnlyPrice)}</div>
-          <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>flat, no per-sqft</div>
+          <div className="hdg tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: T.gold, marginTop: 6, lineHeight: 1.05, letterSpacing: "-0.02em" }}>{money(lot.lotOnlyPrice)}</div>
+          <div style={{ fontSize: 11, color: T.dim, marginTop: 5 }}>flat price, walk away</div>
         </div>
         <div>
           <div className="eyebrow" style={{ fontSize: 10 }}>Lot + build</div>
-          <div className="hdg" style={{ fontSize: 14, fontWeight: 500, color: T.text, marginTop: 6, lineHeight: 1.3 }}>Inquire for build pricing</div>
-          <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>FEREST builds or partner</div>
+          <div className="hdg" style={{ fontSize: 22, fontWeight: 700, color: T.text, marginTop: 6, lineHeight: 1.05, letterSpacing: "-0.02em" }}>Inquire</div>
+          <div style={{ fontSize: 11, color: T.dim, marginTop: 5 }}>build with us</div>
         </div>
       </div>
       {!open ? (
@@ -781,9 +792,9 @@ function PipelineView() {
   return (
     <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "80px 24px 48px" }}>
       <div className="eyebrow" style={{ color: T.gold }}>For builders &amp; investors</div>
-      <h1 className="hdg display" style={{ fontSize: "clamp(2.4rem, 5vw, 3.8rem)", fontWeight: 700, marginTop: 12 }}>Wholesale opportunities</h1>
+      <h1 className="hdg display" style={{ fontSize: "clamp(2.4rem, 5vw, 3.8rem)", fontWeight: 700, marginTop: 12 }}>Deals under contract</h1>
       <p style={{ color: T.dim, maxWidth: 620, marginTop: 20, fontSize: 17 }}>
-        Projects FEREST has under contract or in engineering, packaged for builders, developers, and investors. Most are shovel-ready or near it. Engineered in-house.
+        Projects FEREST controls. Engineered, entitled, or shovel-ready — packaged for builders, developers, and capital partners. Move fast and they go.
       </p>
       <div className="grid md:grid-cols-2 gap-5" style={{ marginTop: 56 }}>
         {PIPELINE.map((proj) => <PipelineCard key={proj.id} proj={proj} />)}
@@ -887,10 +898,10 @@ function PipelineCard({ proj }: { proj: WholesaleDeal }) {
 function PartnersView() {
   return (
     <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "80px 24px 48px" }}>
-      <div className="eyebrow" style={{ color: T.gold }}>Marketplace</div>
+      <div className="eyebrow" style={{ color: T.gold }}>Builder marketplace</div>
       <h1 className="hdg display" style={{ fontSize: "clamp(2.4rem, 5vw, 3.8rem)", fontWeight: 700, marginTop: 12 }}>Partner projects</h1>
-      <p style={{ color: T.dim, maxWidth: 580, marginTop: 20, fontSize: 17 }}>
-        Developments from builders and developers we work with across the Valley. One feed, every option.
+      <p style={{ color: T.dim, maxWidth: 620, marginTop: 20, fontSize: 17 }}>
+        Shovel-ready dirt and active builds across the Valley. Some are FEREST-platted looking for a builder partner. Others are developments by trusted builders we showcase. One feed, every option.
       </p>
       <div className="grid md:grid-cols-2 gap-5" style={{ marginTop: 56 }}>
         {PARTNERS.map((proj) => proj.slot ? <ListSlot key={proj.id} /> : <PartnerCard key={proj.id} proj={proj} />)}

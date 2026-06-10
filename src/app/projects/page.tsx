@@ -151,12 +151,12 @@ const PIPELINE: WholesaleDeal[] = [
   {
     id: "augusta",
     name: "Augusta Townhomes",
-    loc: "Golf Course · Mission, TX",
-    units: "Townhome community",
-    stage: "Entitlement",
-    eta: "TBD",
+    loc: "E. Griffin Pkwy (FM-495) & Augusta Dr. · Mission, TX",
+    units: "30 platted townhome lots · 2.727 ac anchor · 1,851–4,071 sf range",
+    stage: "Platted",
+    eta: "Shovel-ready",
     from: 0,
-    blurb: "Townhome development on the Mission golf-course corridor. Currently in entitlement; package details on request.",
+    blurb: "Fully platted 30-lot townhome community at a high-visibility FM-495 corner. Internal 50-ft ROW with cul-de-sac, dedicated drainage tract, lots sized for efficient attached product. Shovel-ready for a builder.",
   },
 ];
 const PARTNERS = [

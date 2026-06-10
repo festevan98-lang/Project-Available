@@ -157,18 +157,6 @@ const PIPELINE: WholesaleDeal[] = [
     hook: { big: "22 acres", small: "commercial · hard corner · road frontage" },
     tone: "blue",
   },
-  {
-    id: "augusta",
-    name: "Augusta Townhomes",
-    loc: "FM-495 & Augusta Dr · Mission, TX",
-    specs: ["30 platted lots", "2.727 ac anchor", "Townhome product", "Shovel-ready"],
-    stage: "Platted",
-    eta: "Shovel-ready",
-    from: 0,
-    blurb: "Fully platted 30-lot townhome community at a high-visibility FM-495 corner. Internal 50-ft ROW with cul-de-sac, dedicated drainage tract.",
-    hook: { big: "Shovel-ready", small: "30 platted townhome lots · just bring builder" },
-    tone: "rose",
-  },
 ];
 const PARTNERS = [
   {

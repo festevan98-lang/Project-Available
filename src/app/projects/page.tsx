@@ -87,6 +87,24 @@ const LOTS: PortalLot[] = LOTS_DATA.map(([n, sqft]) => ({
 }));
 const FROM_PRICE = Math.min(...LOTS.filter((l) => l.status === "available").map((l) => l.price));
 
+// FEREST-owned, ready-to-build inventory. Surfaced as standalone cards above the plat.
+// Lot-only price is flat; build option says "Inquire" since per-plan pricing varies.
+interface InventoryLot {
+  id: string;
+  project: string;
+  lotNumber: string;
+  sqft: number;
+  lotOnlyPrice: number;
+  status: 'available' | 'pending';
+}
+const INVENTORY_LOTS: InventoryLot[] = [
+  { id: 'lo-69', project: 'Laguna Oaks Phase II', lotNumber: '69', sqft: 6000, lotOnlyPrice: 78000, status: 'available' },
+  { id: 'lo-70', project: 'Laguna Oaks Phase II', lotNumber: '70', sqft: 6000, lotOnlyPrice: 78000, status: 'available' },
+  { id: 'lo-71', project: 'Laguna Oaks Phase II', lotNumber: '71', sqft: 6000, lotOnlyPrice: 78000, status: 'available' },
+  { id: 'lh-38', project: 'Laguna Heights', lotNumber: '38', sqft: 5000, lotOnlyPrice: 78000, status: 'available' },
+  { id: 'lh-39', project: 'Laguna Heights', lotNumber: '39', sqft: 5000, lotOnlyPrice: 78000, status: 'available' },
+];
+
 const PIPELINE = [
   { id: "ad2", name: "Angelica's Dream V2", loc: "Weslaco · Border Ave", units: "47 single-family lots", stage: "In Design · For Sale", eta: "Q3 2026", from: 315000 },
   { id: "lmc", name: "Los Milagros on Conway", loc: "Conway Ave & SH 107 · Mission, TX", units: "48 lots · 96 duplex units", stage: "Engineering", eta: "Q1 2027", from: 1250000 },
@@ -364,6 +382,22 @@ function NowView(p: any) {
         </div>
       </section>
 
+      {/* FEREST INVENTORY - ready-to-build owned lots */}
+      <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 24px 24px" }}>
+        <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
+          <div>
+            <div className="eyebrow" style={{ color: T.gold }}>Ready to build</div>
+            <h2 className="hdg" style={{ fontSize: "clamp(1.8rem, 3.4vw, 2.6rem)", fontWeight: 600, marginTop: 8 }}>FEREST inventory</h2>
+            <p style={{ color: T.dim, marginTop: 12, fontSize: 15, maxWidth: 580, lineHeight: 1.5 }}>
+              Lots we own and control. Buy the land flat or build with us. Limited inventory across Laguna Oaks Phase II and Laguna Heights.
+            </p>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {INVENTORY_LOTS.map((l) => <InventoryCard key={l.id} lot={l} />)}
+        </div>
+      </section>
+
       {/* PLAT */}
       <section className="fade" style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 24px 64px" }}>
         <div className="flex items-end justify-between mb-6" style={{ maxWidth: 1180, margin: "0 auto", width: "100%" }}>
@@ -625,6 +659,50 @@ function NowView(p: any) {
         </section>
       )}
     </>
+  );
+}
+
+function InventoryCard({ lot }: { lot: InventoryLot }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ background: T.panelSolid, border: `1px solid ${T.line}`, borderRadius: 16, padding: 24, position: "relative", overflow: "hidden" }}>
+      <span className="inline-flex items-center gap-1.5 rounded-full mb-3" style={{ background: T.goldSoft, color: T.gold, padding: "4px 10px", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>
+        <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: T.gold }} />
+        FEREST owned
+      </span>
+      <div style={{ fontSize: 12, color: T.dim, letterSpacing: "0.02em" }}>{lot.project}</div>
+      <div className="hdg flex items-baseline gap-2" style={{ fontSize: 32, fontWeight: 700, marginTop: 4, letterSpacing: "-0.02em" }}>
+        Lot {lot.lotNumber}
+        <span style={{ fontSize: 13, color: T.dim, fontWeight: 400 }}>· {lot.sqft.toLocaleString()} sqft</span>
+      </div>
+      <div className="grid grid-cols-2 gap-4 mt-5" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 16 }}>
+        <div>
+          <div className="eyebrow" style={{ fontSize: 10 }}>Lot only</div>
+          <div className="hdg tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: T.gold, marginTop: 4 }}>{money(lot.lotOnlyPrice)}</div>
+          <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>flat, no per-sqft</div>
+        </div>
+        <div>
+          <div className="eyebrow" style={{ fontSize: 10 }}>Lot + build</div>
+          <div className="hdg" style={{ fontSize: 14, fontWeight: 500, color: T.text, marginTop: 6, lineHeight: 1.3 }}>Inquire for build pricing</div>
+          <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>FEREST builds or partner</div>
+        </div>
+      </div>
+      {!open ? (
+        <div className="flex flex-wrap gap-2 mt-5">
+          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-full" style={{ background: T.gold, color: T.ink, padding: "9px 16px", fontSize: 13, fontWeight: 600 }}>
+            Reserve <ArrowRight size={13} strokeWidth={2.4} />
+          </button>
+          <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.text, padding: "9px 16px", fontSize: 13, fontWeight: 500 }}>
+            <Phone size={12} strokeWidth={2.2} /> Call
+          </a>
+          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.text, padding: "9px 16px", fontSize: 13, fontWeight: 500 }}>
+            <MessageCircle size={12} strokeWidth={2.2} /> Text
+          </a>
+        </div>
+      ) : (
+        <InterestForm context={`Inventory · ${lot.project} Lot ${lot.lotNumber} · ${money(lot.lotOnlyPrice)} lot-only`} />
+      )}
+    </div>
   );
 }
 

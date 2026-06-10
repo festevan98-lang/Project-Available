@@ -105,10 +105,59 @@ const INVENTORY_LOTS: InventoryLot[] = [
   { id: 'lh-39', project: 'Laguna Heights', lotNumber: '39', sqft: 5000, lotOnlyPrice: 78000, status: 'available' },
 ];
 
-const PIPELINE = [
-  { id: "ad2", name: "Angelica's Dream V2", loc: "Weslaco · Border Ave", units: "47 single-family lots", stage: "In Design · For Sale", eta: "Q3 2026", from: 315000 },
-  { id: "lmc", name: "Los Milagros on Conway", loc: "Conway Ave & SH 107 · Mission, TX", units: "48 lots · 96 duplex units", stage: "Engineering", eta: "Q1 2027", from: 1250000 },
-  { id: "aug", name: "Augusta Townhomes", loc: "Golf Course · Mission, TX", units: "Townhome community", stage: "Entitlement", eta: "TBD", from: 0 },
+interface WholesaleDeal {
+  id: string;
+  name: string;
+  loc: string;
+  units: string;
+  stage: string;
+  eta: string;
+  from: number;
+  perUnit?: string;
+  blurb?: string;
+}
+const PIPELINE: WholesaleDeal[] = [
+  {
+    id: "milagros",
+    name: "Los Milagros on Conway",
+    loc: "Conway Ave (SH 107) at Mile 3 · Mission, TX",
+    units: "48 duplex-entitled lots · 96 units · 9.37 acres",
+    stage: "Engineering · For Sale",
+    eta: "Ready",
+    from: 78500,
+    perUnit: "per duplex-entitled lot",
+    blurb: "Shovel-ready 48-lot duplex subdivision. No rezone risk under county jurisdiction. All-in basis $54k vs $78.5k asking = projected 46% ROI on lot sales alone. Engineered by FEREST.",
+  },
+  {
+    id: "angelica",
+    name: "Angelica's Dream V2",
+    loc: "Mile 4 1/2 West Rd · Weslaco/Alamo, TX",
+    units: "68 single-family lots · 10 acres · ~7,259 sf typical",
+    stage: "In Design · For Sale",
+    eta: "Q3 2026",
+    from: 0,
+    blurb: "10-acre subdivision designed for 68 single-family lots in the Weslaco/Alamo corridor. City sewer and water at the perimeter, streamlined path to construction. Looking for builder-developer partner.",
+  },
+  {
+    id: "conway22",
+    name: "22-Acre Conway Mile 3",
+    loc: "Mile 3 North Rd & Mayberry Rd · Hidalgo County",
+    units: "22.13 acres net (23.11 gross) · Commercial / Mixed",
+    stage: "Boundary surveyed",
+    eta: "Ready",
+    from: 0,
+    blurb: "22 acres at Mile 3 North & Mayberry. Boundary surveyed, Flood Zone C, hard corner with road frontage in fast-growing Sharyland corridor. Ideal for retail, multifamily, or land bank.",
+  },
+  {
+    id: "augusta",
+    name: "Augusta Townhomes",
+    loc: "Golf Course · Mission, TX",
+    units: "Townhome community",
+    stage: "Entitlement",
+    eta: "TBD",
+    from: 0,
+    blurb: "Townhome development on the Mission golf-course corridor. Currently in entitlement; package details on request.",
+  },
 ];
 const PARTNERS = [
   {
@@ -139,7 +188,7 @@ const STATUS_META: Record<LotStatus, { label: string; color: string }> = {
 const STAGE_COLOR: Record<string, string> = { "Selling Soon": T.green, "In Design · For Sale": T.green, "Under Construction": T.gold, "Engineering": T.gold, "Entitlement": T.dim };
 const TABS = [
   { id: "now", label: "Available Now", icon: Home },
-  { id: "pipeline", label: "Pipeline", icon: Layers },
+  { id: "pipeline", label: "Wholesale", icon: Layers },
   { id: "partners", label: "Partner Projects", icon: Building2 },
 ];
 
@@ -720,10 +769,10 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 function PipelineView() {
   return (
     <section className="fade" style={{ maxWidth: 1180, margin: "0 auto", padding: "80px 24px 48px" }}>
-      <div className="eyebrow" style={{ color: T.gold }}>What&rsquo;s coming</div>
-      <h1 className="hdg display" style={{ fontSize: "clamp(2.4rem, 5vw, 3.8rem)", fontWeight: 700, marginTop: 12 }}>The pipeline</h1>
-      <p style={{ color: T.dim, maxWidth: 580, marginTop: 20, fontSize: 17 }}>
-        Claim a unit before it lists. Tell us how fast you want to move and we prioritize early movers.
+      <div className="eyebrow" style={{ color: T.gold }}>For builders &amp; investors</div>
+      <h1 className="hdg display" style={{ fontSize: "clamp(2.4rem, 5vw, 3.8rem)", fontWeight: 700, marginTop: 12 }}>Wholesale opportunities</h1>
+      <p style={{ color: T.dim, maxWidth: 620, marginTop: 20, fontSize: 17 }}>
+        Projects FEREST has under contract or in engineering, packaged for builders, developers, and investors. Most are shovel-ready or near it. Engineered in-house.
       </p>
       <div className="grid md:grid-cols-2 gap-5" style={{ marginTop: 56 }}>
         {PIPELINE.map((proj) => <PipelineCard key={proj.id} proj={proj} />)}

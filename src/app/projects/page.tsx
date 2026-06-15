@@ -95,14 +95,16 @@ interface InventoryLot {
   lotNumber: string;
   sqft: number;
   lotOnlyPrice: number;
+  moveInPrice?: number; // out-of-pocket to move in if FEREST builds
+  street?: string;       // optional street + city
   status: 'available' | 'pending';
 }
 const INVENTORY_LOTS: InventoryLot[] = [
-  { id: 'lo-69', project: 'Laguna Oaks Phase II', lotNumber: '69', sqft: 6000, lotOnlyPrice: 78000, status: 'available' },
-  { id: 'lo-70', project: 'Laguna Oaks Phase II', lotNumber: '70', sqft: 6000, lotOnlyPrice: 78000, status: 'available' },
-  { id: 'lo-71', project: 'Laguna Oaks Phase II', lotNumber: '71', sqft: 6000, lotOnlyPrice: 78000, status: 'available' },
-  { id: 'lh-38', project: 'Laguna Heights', lotNumber: '38', sqft: 5000, lotOnlyPrice: 78000, status: 'available' },
-  { id: 'lh-39', project: 'Laguna Heights', lotNumber: '39', sqft: 5000, lotOnlyPrice: 78000, status: 'available' },
+  { id: 'lo-69', project: 'Laguna Oaks Phase II', lotNumber: '69', sqft: 6000, lotOnlyPrice: 78000, moveInPrice: 10150, street: '809 La Laguna Rd · Mission, TX', status: 'available' },
+  { id: 'lo-70', project: 'Laguna Oaks Phase II', lotNumber: '70', sqft: 6000, lotOnlyPrice: 78000, moveInPrice: 10150, street: '809 La Laguna Rd · Mission, TX', status: 'available' },
+  { id: 'lo-71', project: 'Laguna Oaks Phase II', lotNumber: '71', sqft: 6000, lotOnlyPrice: 78000, moveInPrice: 10150, street: '809 La Laguna Rd · Mission, TX', status: 'available' },
+  { id: 'lh-38', project: 'Laguna Heights', lotNumber: '38', sqft: 5000, lotOnlyPrice: 78000, street: 'Sundown Dr · Mission, TX', status: 'available' },
+  { id: 'lh-39', project: 'Laguna Heights', lotNumber: '39', sqft: 5000, lotOnlyPrice: 78000, street: 'Sundown Dr · Mission, TX', status: 'available' },
 ];
 
 interface WholesaleDeal {
@@ -723,9 +725,10 @@ function NowView(p: any) {
 
 function InventoryCard({ lot }: { lot: InventoryLot }) {
   const [open, setOpen] = useState(false);
+  const hasMoveIn = typeof lot.moveInPrice === 'number';
   return (
-    <div style={{ background: T.panelSolid, border: `1px solid ${T.line}`, borderRadius: 16, padding: 24, position: "relative", overflow: "hidden" }}>
-      <span className="inline-flex items-center gap-1.5 rounded-full mb-3" style={{ background: T.goldSoft, color: T.gold, padding: "4px 10px", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>
+    <div style={{ background: T.panelSolid, border: `1px solid ${T.line}`, borderRadius: 16, padding: 24, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <span className="inline-flex items-center gap-1.5 rounded-full mb-3 w-fit" style={{ background: T.goldSoft, color: T.gold, padding: "4px 10px", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>
         <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: T.gold }} />
         FEREST owned
       </span>
@@ -734,16 +737,32 @@ function InventoryCard({ lot }: { lot: InventoryLot }) {
         Lot {lot.lotNumber}
         <span style={{ fontSize: 13, color: T.dim, fontWeight: 400 }}>· {lot.sqft.toLocaleString()} sqft</span>
       </div>
-      <div className="grid grid-cols-2 gap-4 mt-5" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 18 }}>
+      {lot.street && (
+        <div className="flex items-center gap-1.5 mt-2" style={{ fontSize: 12, color: T.dim }}>
+          <MapPin size={12} strokeWidth={2} /> {lot.street}
+        </div>
+      )}
+      {hasMoveIn && (
+        <div className="rounded-xl mt-4" style={{ background: T.goldSoft, border: `1px solid ${T.gold}`, padding: "12px 14px" }}>
+          <div className="eyebrow" style={{ fontSize: 9, color: T.gold }}>Move in for as little as</div>
+          <div className="hdg tabular-nums flex items-baseline gap-2" style={{ fontSize: 26, fontWeight: 700, color: T.gold, marginTop: 2, letterSpacing: "-0.025em", lineHeight: 1 }}>
+            {money(lot.moveInPrice as number)}
+            <span style={{ fontSize: 11, color: T.dim, fontWeight: 400 }}>out of pocket</span>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4 mt-4" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 16 }}>
         <div>
           <div className="eyebrow" style={{ fontSize: 10 }}>Lot only</div>
-          <div className="hdg tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: T.gold, marginTop: 6, lineHeight: 1.05, letterSpacing: "-0.02em" }}>{money(lot.lotOnlyPrice)}</div>
-          <div style={{ fontSize: 11, color: T.dim, marginTop: 5 }}>flat price, walk away</div>
+          <div className="hdg tabular-nums" style={{ fontSize: 20, fontWeight: 700, color: T.text, marginTop: 5, lineHeight: 1.05, letterSpacing: "-0.02em" }}>{money(lot.lotOnlyPrice)}</div>
+          <div style={{ fontSize: 11, color: T.dim, marginTop: 4 }}>flat, walk away</div>
         </div>
         <div>
           <div className="eyebrow" style={{ fontSize: 10 }}>Lot + build</div>
-          <div className="hdg" style={{ fontSize: 22, fontWeight: 700, color: T.text, marginTop: 6, lineHeight: 1.05, letterSpacing: "-0.02em" }}>Inquire</div>
-          <div style={{ fontSize: 11, color: T.dim, marginTop: 5 }}>build with us</div>
+          <div className="hdg" style={{ fontSize: 20, fontWeight: 700, color: T.text, marginTop: 5, lineHeight: 1.05, letterSpacing: "-0.02em" }}>
+            {hasMoveIn ? 'FEREST builds' : 'Inquire'}
+          </div>
+          <div style={{ fontSize: 11, color: T.dim, marginTop: 4 }}>{hasMoveIn ? 'finance to live in' : 'build with us'}</div>
         </div>
       </div>
       {!open ? (
@@ -759,7 +778,7 @@ function InventoryCard({ lot }: { lot: InventoryLot }) {
           </a>
         </div>
       ) : (
-        <InterestForm context={`Inventory · ${lot.project} Lot ${lot.lotNumber} · ${money(lot.lotOnlyPrice)} lot-only`} />
+        <InterestForm context={`Inventory · ${lot.project} Lot ${lot.lotNumber} · ${money(lot.lotOnlyPrice)} lot-only${hasMoveIn ? ` · ${money(lot.moveInPrice as number)} move-in` : ''}`} />
       )}
     </div>
   );

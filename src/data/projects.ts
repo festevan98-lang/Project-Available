@@ -11,6 +11,10 @@
 
 export type ProjectStatus = 'Selling' | 'Ready' | 'In Design';
 
+// The development lifecycle every FEREST subdivision moves through.
+export const STAGES = ['Feasibility', 'Plans', 'Construction', 'Sales'] as const;
+export type Stage = (typeof STAGES)[number];
+
 export interface ProjectStat {
   /** Short Title Case label: Lots, Acres, Units, Typical Lot, etc. */
   label: string;
@@ -28,6 +32,8 @@ export interface Subdivision {
   publicName?: string;
   city: string;
   status: ProjectStatus;
+  /** Current position in the STAGES lifecycle (0 = Feasibility ... 3 = Sales). */
+  stageIndex: number;
   /** Development type chip: Single-Family, Townhomes, Duplex, etc. */
   devType: string;
   /** Up to three numeric chips shown in the pipeline row. No prices. */
@@ -42,9 +48,10 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Laguna Heights',
     city: 'Mission, TX',
     status: 'Selling',
+    stageIndex: 3,
     devType: 'Single-Family',
     stats: [
-      { label: 'Lots', value: '142' },
+      { label: 'Lots', value: '141' },
       { label: 'Acres', value: '27' },
     ],
     audience: ['retail', 'pipeline'],
@@ -54,6 +61,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Laguna Oaks Phase II',
     city: 'Mission, TX',
     status: 'Selling',
+    stageIndex: 3,
     devType: 'Single-Family',
     stats: [
       { label: 'FEREST Lots', value: '3' },
@@ -66,6 +74,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Augusta Townhomes',
     city: 'Mission, TX',
     status: 'Ready',
+    stageIndex: 2,
     devType: 'Townhomes',
     stats: [
       { label: 'Lots', value: '30' },
@@ -79,6 +88,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     publicName: 'Duplex Development, Conway Corridor',
     city: 'Mission, TX',
     status: 'Ready',
+    stageIndex: 2,
     devType: 'Duplex',
     stats: [
       { label: 'Lots', value: '48' },
@@ -110,6 +120,8 @@ export interface PortfolioProject {
   /** Optional status chip, e.g. "Success Story" or "Sold". */
   tag?: string;
   stats: ProjectStat[];
+  /** Apple Maps search query. */
+  mapsQuery?: string;
   /** Optional availability note (e.g. a built unit for rent or sale). */
   note?: string;
   /** Optional WhatsApp CTA tied to the note. */
@@ -125,8 +137,8 @@ export const PORTFOLIO: PortfolioProject[] = [
     stats: [
       { label: 'Lots', value: '68' },
       { label: 'Acres', value: '10' },
-      { label: 'Type', value: 'Single-Family' },
     ],
+    mapsQuery: "Angelica's Dream Subdivision, Weslaco, TX",
     note: 'Designed By Our Team. Sold And Now Being Built By The Buyer.',
   },
   {
@@ -136,8 +148,8 @@ export const PORTFOLIO: PortfolioProject[] = [
     stats: [
       { label: 'Lots', value: '12' },
       { label: 'Acres', value: '4.5' },
-      { label: 'Recorded', value: 'Vol 1 Pg 56' },
     ],
+    mapsQuery: 'Las Cumbres Terrace Subdivision, Mission, TX',
     note: 'Lots Sold Out. A Fourplex Is Available To Rent Or Buy.',
     noteCta: { label: 'Fourplex - Rent Or Buy', waText: 'Hi FEREST, Tell Me About The Las Cumbres Fourplex (Rent Or Buy).' },
   },
@@ -146,9 +158,10 @@ export const PORTFOLIO: PortfolioProject[] = [
     name: 'Garden Path Subdivision',
     city: 'Mission, TX',
     stats: [
+      { label: 'Lots', value: '~80' },
       { label: 'Acres', value: '8.867' },
-      { label: 'Type', value: 'Single-Family' },
     ],
+    mapsQuery: 'Garden Path Subdivision, Mission, TX',
   },
   {
     id: 'one-place-pecan',
@@ -158,6 +171,7 @@ export const PORTFOLIO: PortfolioProject[] = [
       { label: 'Lots', value: '14' },
       { label: 'Acres', value: '1.515' },
     ],
+    mapsQuery: 'One Place Pecan Subdivision, McAllen, TX',
   },
   {
     id: 'laguna-oaks-1',
@@ -167,6 +181,7 @@ export const PORTFOLIO: PortfolioProject[] = [
       { label: 'Acres', value: '11.861' },
       { label: 'Type', value: 'Single-Family' },
     ],
+    mapsQuery: 'Laguna Oaks Subdivision, Mission, TX',
   },
 ];
 
@@ -179,14 +194,19 @@ export interface BuildProject {
   location: string;
   type: 'Home' | 'Commercial';
   image: string;
+  /** Sold / Concept / Open, etc. */
   status?: string;
+  /** Live site for operating businesses. */
+  website?: string;
+  /** Apple Maps search query. */
+  mapsQuery?: string;
 }
 
 export const CONSTRUCTION: BuildProject[] = [
-  { id: 'lot64', name: 'Lot 64, Laguna Oaks', location: '809 La Laguna Rd, Mission TX', type: 'Home', image: '/models/ferest-model-ext-1.webp', status: 'Under Construction' },
-  { id: 'lot77', name: 'Lot 77, Garden Path', location: 'Mission, TX', type: 'Home', image: '/construction/lot77-garden-path.webp', status: 'Under Construction' },
-  { id: 'luma', name: 'Luma Cocktail Bar', location: 'Rio Grande Valley, TX', type: 'Commercial', image: '/construction/luma.webp' },
-  { id: 'mil-besos', name: 'Mil Besos Cocktail Bar', location: 'Rio Grande Valley, TX', type: 'Commercial', image: '/construction/mil-besos.webp' },
+  { id: 'lot64', name: 'Lot 64, Laguna Oaks', location: '809 La Laguna Rd, Mission TX', type: 'Home', image: '/models/ferest-model-ext-1.webp', status: 'Sold', mapsQuery: '809 La Laguna Rd, Mission, TX' },
+  { id: 'lot77', name: 'Lot 77, Garden Path', location: 'Mission, TX', type: 'Home', image: '/construction/lot77-garden-path.webp', status: 'Sold', mapsQuery: 'Garden Path Subdivision, Mission, TX' },
+  { id: 'luma', name: 'LUMA Cocktail Lounge', location: 'McAllen, TX', type: 'Commercial', image: '/construction/luma.webp', status: 'Open', website: 'https://lumalounge.co', mapsQuery: 'LUMA Cocktail Lounge, 7001 N 10th St, McAllen, TX' },
+  { id: 'mil-besos', name: 'Mil Besos Cocktail Bar', location: 'Rio Grande Valley, TX', type: 'Commercial', image: '/construction/mil-besos.webp', status: 'Concept' },
 ];
 
 /* ------------------------------------------------------------------ land pipeline */
@@ -203,4 +223,29 @@ export const LAND_PIPELINE: LandDeal[] = [
   { id: 'san-benito-12', area: '12.22 Acres', city: 'San Benito, TX' },
   { id: 'hick-hill-7', area: '7 Acres', city: 'Harlingen, TX' },
   { id: 'paloma', area: 'Paloma Lane', city: 'Harlingen, TX' },
+];
+
+/* ------------------------------------------------------------------ map */
+// Approximate parcel locations for the "Where We Build" map. Coordinates are
+// vicinity-level (city / corridor), not surveyed boundaries - refine anytime.
+
+export interface MapParcel {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  kind: 'built' | 'developed';
+}
+
+export const MAP_PARCELS: MapParcel[] = [
+  { id: 'laguna-heights', name: 'Laguna Heights', lat: 26.1575, lng: -98.2885, kind: 'developed' },
+  { id: 'laguna-oaks', name: 'Laguna Oaks I & II', lat: 26.1605, lng: -98.2835, kind: 'developed' },
+  { id: 'garden-path', name: 'Garden Path', lat: 26.2015, lng: -98.2805, kind: 'developed' },
+  { id: 'las-cumbres', name: 'Las Cumbres Terrace', lat: 26.1925, lng: -98.3125, kind: 'developed' },
+  { id: 'augusta', name: 'Augusta Townhomes', lat: 26.2360, lng: -98.2915, kind: 'developed' },
+  { id: 'one-place-pecan', name: 'One Place Pecan', lat: 26.2230, lng: -98.2435, kind: 'developed' },
+  { id: 'conway-duplex', name: 'Conway Corridor Duplex', lat: 26.1910, lng: -98.2720, kind: 'developed' },
+  { id: 'angelica', name: "Angelica's Dream V2", lat: 26.1590, lng: -98.0200, kind: 'developed' },
+  { id: 'lot64', name: 'Lot 64 (Built)', lat: 26.1600, lng: -98.2830, kind: 'built' },
+  { id: 'luma', name: 'LUMA Lounge', lat: 26.2430, lng: -98.2350, kind: 'built' },
 ];

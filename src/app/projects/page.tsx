@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   MapPin, Phone, MessageCircle, ArrowRight, ArrowUpRight, X, Search, Hammer, Compass,
+  Navigation, ExternalLink,
 } from 'lucide-react';
 import {
-  PIPELINE_ROWS, publicNameOf, PORTFOLIO, CONSTRUCTION, LAND_PIPELINE, type ProjectStatus,
+  PIPELINE_ROWS, publicNameOf, PORTFOLIO, CONSTRUCTION, LAND_PIPELINE, MAP_PARCELS, STAGES,
 } from '@/data/projects';
+
+/** Apple Maps search link. */
+const appleMaps = (q: string) => `https://maps.apple.com/?q=${encodeURIComponent(q)}`;
 
 /*
   FEREST PORTAL - revamp v3.
@@ -21,7 +25,7 @@ const CALENDLY = 'https://calendly.com/ferest-info/30min';
 const WA_BASE = 'https://wa.me/19562030003';
 const TEL = 'tel:+19562030003';
 const wa = (text: string) => `${WA_BASE}?text=${encodeURIComponent(text)}`;
-const WA_INFO = wa("Hi FEREST, I'd Like More Information.");
+const WA_INFO = wa("Hey FEREST, I Saw Your Projects Site And I'm Interested In A Project.");
 
 const LINKS = {
   ferest: 'https://ferest.dev',
@@ -43,11 +47,6 @@ const BRAND = {
 };
 const HERO_IMG = '/plats/laguna-heights-hero.jpg';
 const PLAT_IMG = '/plats/laguna-heights-plat.png';
-const MODEL_EXT = [
-  '/models/ferest-model-ext-1.webp',
-  '/models/ferest-model-ext-2.webp',
-  '/models/ferest-model-ext-3.webp',
-];
 const MODEL_INT = ['/models/ferest-model-kitchen.webp', '/models/ferest-model-living.webp'];
 
 /* ------------------------------------------------------------------ palette */
@@ -74,21 +73,20 @@ interface InventoryLot {
   city: string;
   lotNumber: string;
   sqft: number;
-  lotOnlyPrice: number;
-  moveInPrice?: number;
   street?: string;
+  mapsQuery?: string;
 }
 const INVENTORY_LOTS: InventoryLot[] = [
-  { id: 'lo-69', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '69', sqft: 6000, lotOnlyPrice: 78000, moveInPrice: 10150, street: '809 La Laguna Rd' },
-  { id: 'lo-70', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '70', sqft: 6000, lotOnlyPrice: 78000, moveInPrice: 10150, street: '809 La Laguna Rd' },
-  { id: 'lo-71', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '71', sqft: 6000, lotOnlyPrice: 78000, moveInPrice: 10150, street: '809 La Laguna Rd' },
-  { id: 'lh-38', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '38', sqft: 5000, lotOnlyPrice: 78000, street: 'Sundown Dr' },
-  { id: 'lh-39', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '39', sqft: 5000, lotOnlyPrice: 78000, street: 'Sundown Dr' },
+  { id: 'lo-69', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '69', sqft: 6000, street: '909 La Laguna Rd', mapsQuery: '909 La Laguna Rd, Mission, TX' },
+  { id: 'lo-70', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '70', sqft: 6000, street: 'La Laguna Rd', mapsQuery: 'Laguna Oaks Phase II, Mission, TX' },
+  { id: 'lo-71', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '71', sqft: 6000, street: 'La Laguna Rd', mapsQuery: 'Laguna Oaks Phase II, Mission, TX' },
+  { id: 'lh-38', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '38', sqft: 5000, street: 'Sundown Dr', mapsQuery: 'Laguna Heights, Mission, TX' },
+  { id: 'lh-39', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '39', sqft: 5000, street: 'Sundown Dr', mapsQuery: 'Laguna Heights, Mission, TX' },
 ];
 
 // Laguna Heights recorded plat - lot -> sqft. Prices carried exactly from site.
 const PRICE_PSF = 11.75;
-const LOTS_DATA: [number, number][] = [[1,7293],[2,6548],[3,6414],[4,6302],[5,6289],[6,6289],[7,6289],[8,6289],[9,6289],[10,6289],[11,6289],[12,6289],[13,6289],[14,6289],[15,6289],[16,6289],[17,6289],[18,6198],[19,5317],[20,9122],[21,5215],[22,5030],[23,5500],[24,5546],[25,5896],[26,6649],[27,7436],[28,7828],[29,5000],[30,5000],[31,5000],[32,5000],[33,5000],[34,5000],[35,5000],[36,5000],[37,5000],[38,5000],[39,5000],[40,5000],[41,5500],[42,5922],[43,5735],[44,5735],[45,5735],[46,5735],[47,5735],[48,5735],[49,5735],[50,5735],[51,5735],[52,5735],[53,5735],[54,5735],[55,5734],[56,5647],[57,6315],[58,6274],[59,6340],[60,8388],[61,5704],[62,5704],[63,5703],[64,5703],[65,5704],[66,5704],[67,5703],[68,5704],[69,5704],[70,5703],[71,5703],[72,5703],[73,5703],[74,5703],[75,5703],[76,5636],[77,6017],[78,5772],[79,5772],[80,5772],[81,5772],[82,5772],[83,5772],[84,5772],[85,5772],[86,5772],[87,5772],[88,5772],[89,5772],[90,5772],[91,5772],[92,5944],[93,5944],[94,5772],[95,5772],[96,5772],[97,5772],[98,5772],[99,5772],[100,5772],[101,5772],[102,5772],[103,5772],[104,5772],[105,5772],[106,5772],[107,5772],[108,5772],[109,5772],[110,5944],[111,5937],[112,5568],[113,5568],[114,5568],[115,5568],[116,5568],[117,5568],[118,5568],[119,5568],[120,5568],[121,5568],[122,5568],[123,5568],[124,5568],[125,5568],[126,5568],[127,5568],[128,5052],[129,5427],[130,8252],[131,6731],[132,6240],[133,5750],[134,5750],[135,5750],[136,5750],[137,5750],[138,5750],[139,5750],[140,6675],[141,5362],[142,5000]];
+const LOTS_DATA: [number, number][] = [[1,7293],[2,6548],[3,6414],[4,6302],[5,6289],[6,6289],[7,6289],[8,6289],[9,6289],[10,6289],[11,6289],[12,6289],[13,6289],[14,6289],[15,6289],[16,6289],[17,6289],[18,6198],[19,5317],[21,5215],[22,5030],[23,5500],[24,5546],[25,5896],[26,6649],[27,7436],[28,7828],[29,5000],[30,5000],[31,5000],[32,5000],[33,5000],[34,5000],[35,5000],[36,5000],[37,5000],[38,5000],[39,5000],[40,5000],[41,5500],[42,5922],[43,5735],[44,5735],[45,5735],[46,5735],[47,5735],[48,5735],[49,5735],[50,5735],[51,5735],[52,5735],[53,5735],[54,5735],[55,5734],[56,5647],[57,6315],[58,6274],[59,6340],[60,8388],[61,5704],[62,5704],[63,5703],[64,5703],[65,5704],[66,5704],[67,5703],[68,5704],[69,5704],[70,5703],[71,5703],[72,5703],[73,5703],[74,5703],[75,5703],[76,5636],[77,6017],[78,5772],[79,5772],[80,5772],[81,5772],[82,5772],[83,5772],[84,5772],[85,5772],[86,5772],[87,5772],[88,5772],[89,5772],[90,5772],[91,5772],[92,5944],[93,5944],[94,5772],[95,5772],[96,5772],[97,5772],[98,5772],[99,5772],[100,5772],[101,5772],[102,5772],[103,5772],[104,5772],[105,5772],[106,5772],[107,5772],[108,5772],[109,5772],[110,5944],[111,5937],[112,5568],[113,5568],[114,5568],[115,5568],[116,5568],[117,5568],[118,5568],[119,5568],[120,5568],[121,5568],[122,5568],[123,5568],[124,5568],[125,5568],[126,5568],[127,5568],[128,5052],[129,5427],[130,8252],[131,6731],[132,6240],[133,5750],[134,5750],[135,5750],[136,5750],[137,5750],[138,5750],[139,5750],[140,6675],[141,5362],[142,5000]];
 const SOLD = new Set<number>([18,22,23,24,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,70,73,74,75,77,78,91,92,93,94,95,96,97,98,99,100,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,133,134,137]);
 const RESERVED = new Set<number>([]);
 
@@ -111,11 +109,6 @@ function monthlyPI(principal: number, annualRate: number, years: number) {
   if (r === 0) return principal / n;
   return (principal * r) / (1 - Math.pow(1 + r, -n));
 }
-const STATUS_CHIP: Record<ProjectStatus, string> = {
-  Selling: C.gold,
-  Ready: C.goldHi,
-  'In Design': C.paperDeep,
-};
 const LOT_STATUS_LABEL: Record<LotStatus, string> = {
   available: 'Available', reserved: 'Reserved', sold: 'Sold',
 };
@@ -186,10 +179,11 @@ export default function App() {
       <Header />
 
       <main>
-        <BuyOrBuild showPlat={showPlat} setShowPlat={setShowPlat} />
+        <Hero />
         <Pipeline />
-        <DesignBuild />
         <Portfolio />
+        <DesignBuild />
+        <Homes showPlat={showPlat} setShowPlat={setShowPlat} />
         <OffMarket />
       </main>
 
@@ -204,19 +198,12 @@ function Header() {
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(244,241,232,0.9)', backdropFilter: 'blur(12px)', borderBottom: `2px solid ${C.goldDeep}` }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 20px' }} className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <a href={LINKS.ferest} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={BRAND.mark} alt="FEREST" style={{ height: 30, width: 'auto' }} />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={BRAND.wordmark} alt="FEREST" style={{ height: 15, width: 'auto' }} />
-          </a>
-          <span aria-hidden style={{ width: 2, height: 26, background: C.goldDeep, opacity: 0.5 }} />
-          <a href={LINKS.m2} target="_blank" rel="noopener noreferrer" className="flex items-center" aria-label="M2 Engineering">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={BRAND.m2} alt="M2 Engineering" style={{ height: 26, width: 'auto' }} />
-          </a>
-        </div>
+        <a href={LINKS.ferest} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND.mark} alt="FEREST" style={{ height: 30, width: 'auto' }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND.wordmark} alt="FEREST" style={{ height: 15, width: 'auto' }} />
+        </a>
         <div className="hidden sm:flex items-center gap-2.5">
           <BtnGhost href={WA_INFO} external><MessageCircle size={15} strokeWidth={2.4} /> Text Us</BtnGhost>
           <BtnPrimary href={CALENDLY} external><Phone size={14} strokeWidth={2.6} /> Book A Call</BtnPrimary>
@@ -226,73 +213,73 @@ function Header() {
   );
 }
 
-/* ------------------------------------------------------------------ Block 1 */
-function BuyOrBuild({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: boolean) => void }) {
+/* ------------------------------------------------------------------ Hero (developments-first) */
+function Hero() {
   return (
-    <section id="buy" className="fade">
-      {/* HERO */}
-      <div style={{ position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0 }} aria-hidden>
-          <SmartImg src={HERO_IMG} alt="" label="Laguna Heights" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, rgba(244,241,232,0.35) 0%, rgba(244,241,232,0.55) 55%, ${C.paper} 100%)` }} />
-        </div>
-        <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto', padding: '84px 20px 40px' }}>
-          <div className="flex items-center gap-3 mb-5">
-            <span className="label" style={{ color: C.goldDeep }}>Laguna Heights</span>
-            <span aria-hidden style={{ width: 20, height: 2, background: C.goldDeep, opacity: 0.6 }} />
-            <span style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>Mission, TX</span>
-          </div>
-          <h1 className="display" style={{ fontSize: 'clamp(3.2rem, 10vw, 7rem)' }}>
-            <span style={{ color: C.ink }}>Own The Lot.</span><br />
-            <span className="gold-text">Build The Home.</span>
-          </h1>
-          <p style={{ marginTop: 22, fontSize: 'clamp(1rem, 2.4vw, 1.25rem)', fontWeight: 500, color: C.ink, maxWidth: 640 }}>
-            27 Acres. 142 Lots. Platted, Entitled, And Engineered In-House.
-          </p>
-        </div>
+    <section id="top" className="fade" style={{ position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0 }} aria-hidden>
+        <SmartImg src={HERO_IMG} alt="" label="Rio Grande Valley" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, rgba(244,241,232,0.4) 0%, rgba(244,241,232,0.6) 55%, ${C.paper} 100%)` }} />
       </div>
-
-      {/* STAT STRIP */}
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '4px 20px 8px' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <StatTile top="Starting In The" big="$60s" sub="Lot Pricing" />
-          <StatTile top="Available Now" big={String(AVAIL_COUNT)} sub="Lots Ready" />
-          <StatTile top="Lot Sizes" big={`${SQFT_MIN.toLocaleString()}-${SQFT_MAX.toLocaleString()}`} sub="Square Feet" />
+      <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto', padding: '84px 20px 44px' }}>
+        <div className="flex items-center gap-3 mb-5">
+          <span className="label" style={{ color: C.goldDeep }}>FEREST Development</span>
+          <span aria-hidden style={{ width: 20, height: 2, background: C.goldDeep, opacity: 0.6 }} />
+          <span style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>Rio Grande Valley, TX</span>
         </div>
-      </div>
-
-      {/* FHA CALCULATOR */}
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 20px 8px' }}>
-        <FhaCalculator />
-      </div>
-
-      {/* MODEL + OWNED LOTS */}
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 20px 8px' }}>
-        <div className="mb-2"><span className="label" style={{ color: C.goldDeep }}>FEREST Owned - Ready To Build</span></div>
-        <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: C.ink }}>The Home We Build</h2>
-        <p style={{ marginTop: 10, fontSize: 15, color: C.inkSoft, maxWidth: 620, fontWeight: 500 }}>
-          Lots FEREST owns across Laguna Oaks Phase II and Laguna Heights. Take the lot flat, or let us build this model on it. Not on MLS.
+        <h1 className="display" style={{ fontSize: 'clamp(3rem, 9vw, 6.6rem)' }}>
+          <span style={{ color: C.ink }}>From Raw Acres</span><br />
+          <span className="gold-text">To Rooftops.</span>
+        </h1>
+        <p style={{ marginTop: 22, fontSize: 'clamp(1rem, 2.4vw, 1.3rem)', fontWeight: 500, color: C.ink, maxWidth: 680 }}>
+          We run developments from feasibility to plans to construction to sales, engineered and entitled in-house. Want a home instead? We build those too.
         </p>
-
-        {/* interior peek */}
-        <div className="grid grid-cols-2 gap-3 mt-6">
-          {MODEL_INT.map((src) => (
-            <SmartImg key={src} src={src} alt="FEREST model home interior" label="Model Interior"
-              style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', borderRadius: 14, border: `2px solid ${C.border}` }} />
-          ))}
+        <div className="flex flex-wrap gap-2.5 mt-7">
+          <BtnPrimary href="#developments"><Compass size={15} strokeWidth={2.6} /> See Developments</BtnPrimary>
+          <BtnGhost href="#homes">Looking For A Home</BtnGhost>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-          {INVENTORY_LOTS.map((lot, i) => <OwnedLotCard key={lot.id} lot={lot} heroIndex={i % 3} />)}
-        </div>
+/* ------------------------------------------------------------------ Homes (simple, under developments) */
+function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: boolean) => void }) {
+  return (
+    <section id="homes" className="fade" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
+      <span className="label" style={{ color: C.goldDeep }}>FEREST Homes</span>
+      <h2 className="display" style={{ fontSize: 'clamp(2rem, 5.5vw, 3rem)', color: C.ink, marginTop: 8 }}>Buy A Lot Or Build To Suit.</h2>
+      <p style={{ marginTop: 10, fontSize: 15, color: C.inkSoft, maxWidth: 660, fontWeight: 500 }}>
+        Vacant lots FEREST owns across Laguna Oaks and Laguna Heights. Take the lot as-is, or we build our model to your floor plan. Pricing is by request.
+      </p>
 
-        {/* See all lots toggle */}
-        <div className="flex justify-center mt-8">
-          <BtnGhost onClick={() => setShowPlat(!showPlat)}>
-            {showPlat ? 'Hide The Plat' : `See All ${AVAIL_COUNT} Lots`}
-            <ArrowRight size={15} strokeWidth={2.6} style={{ transform: showPlat ? 'rotate(-90deg)' : 'rotate(90deg)', transition: 'transform .2s' }} />
-          </BtnGhost>
-        </div>
+      {/* one model peek - not repeated per card */}
+      <div className="grid grid-cols-2 gap-3 mt-6">
+        {MODEL_INT.map((src) => (
+          <SmartImg key={src} src={src} alt="FEREST model home interior" label="Our Model"
+            style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', borderRadius: 14, border: `2px solid ${C.border}` }} />
+        ))}
+      </div>
+
+      {/* stat strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+        <StatTile top="Starting In The" big="$60s" sub="Lot Pricing" />
+        <StatTile top="Available Now" big={String(AVAIL_COUNT)} sub="Lots Ready" />
+        <StatTile top="Lot Sizes" big={`${SQFT_MIN.toLocaleString()}-${SQFT_MAX.toLocaleString()}`} sub="Square Feet" />
+      </div>
+
+      {/* owned lots - compact reach-out cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        {INVENTORY_LOTS.map((lot) => <OwnedLotCard key={lot.id} lot={lot} />)}
+      </div>
+
+      <div className="mt-4"><FhaCalculator /></div>
+
+      <div className="flex justify-center mt-8">
+        <BtnGhost onClick={() => setShowPlat(!showPlat)}>
+          {showPlat ? 'Hide The Plat' : `See All ${AVAIL_COUNT} Lots`}
+          <ArrowRight size={15} strokeWidth={2.6} style={{ transform: showPlat ? 'rotate(-90deg)' : 'rotate(90deg)', transition: 'transform .2s' }} />
+        </BtnGhost>
       </div>
 
       {showPlat && <PlatDirectory />}
@@ -365,46 +352,37 @@ function FhaCalculator() {
 }
 
 /* ------------------------------------------------------------------ owned lot card */
-function OwnedLotCard({ lot, heroIndex }: { lot: InventoryLot; heroIndex: number }) {
-  const reserveHref = wa(`Hi FEREST, I Want To Reserve Lot ${lot.lotNumber} At ${lot.project}.`);
-  const hasMoveIn = typeof lot.moveInPrice === 'number';
+function OwnedLotCard({ lot }: { lot: InventoryLot }) {
+  const reachHref = wa(`Hey FEREST, I'm Interested In Lot ${lot.lotNumber} At ${lot.project} - Buy Or Build To Suit. What's The Pricing?`);
   return (
-    <article style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ position: 'relative' }}>
-        <SmartImg src={MODEL_EXT[heroIndex]} alt={`FEREST model at ${lot.project}`} label="Model Home"
-          style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', display: 'block' }} />
-        <span className="label" style={{ position: 'absolute', top: 12, left: 12, background: C.gold, color: '#1A160A', padding: '5px 10px', borderRadius: 999, fontSize: 10 }}>
-          FEREST Owned
+    <article style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 18, display: 'flex', flexDirection: 'column' }}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="label" style={{ background: C.gold, color: '#1A160A', padding: '4px 10px', borderRadius: 999, fontSize: 9 }}>FEREST Owned</span>
+        <span className="label" style={{ background: C.paperDeep, color: C.inkSoft, padding: '4px 10px', borderRadius: 999, fontSize: 9 }}>Vacant</span>
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft, marginTop: 12 }}>{lot.project} - {lot.city}</div>
+      <div className="display flex items-baseline gap-2" style={{ fontSize: 30, color: C.ink, marginTop: 2 }}>
+        Lot {lot.lotNumber}
+        <span style={{ fontFamily: 'var(--font-oswald)', fontSize: 12, fontWeight: 600, color: C.inkSoft, textTransform: 'none', letterSpacing: 0 }}>
+          {lot.sqft.toLocaleString()} Sqft
         </span>
       </div>
-      <div style={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft }}>{lot.project} - {lot.city}</div>
-        <div className="display flex items-baseline gap-2" style={{ fontSize: 34, color: C.ink, marginTop: 2 }}>
-          Lot {lot.lotNumber}
-          <span style={{ fontFamily: 'var(--font-oswald)', fontSize: 13, fontWeight: 600, color: C.inkSoft, textTransform: 'none', letterSpacing: 0 }}>
-            {lot.sqft.toLocaleString()} Sqft
-          </span>
+      {lot.street && (
+        <div className="flex items-center gap-1.5" style={{ fontSize: 12, color: C.inkSoft, fontWeight: 500, marginTop: 4 }}>
+          <MapPin size={12} strokeWidth={2} /> {lot.street}
         </div>
-        {lot.street && (
-          <div className="flex items-center gap-1.5" style={{ fontSize: 12, color: C.inkSoft, fontWeight: 500, marginTop: 4 }}>
-            <MapPin size={12} strokeWidth={2} /> {lot.street}
-          </div>
+      )}
+      <div style={{ marginTop: 12, borderTop: `2px solid ${C.border}`, paddingTop: 12 }}>
+        <div className="label" style={{ color: C.goldDeep, fontSize: 10 }}>Buy The Lot Or Build To Suit</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginTop: 3 }}>Reach Out For Pricing</div>
+      </div>
+      <div style={{ marginTop: 'auto', paddingTop: 14 }} className="flex flex-wrap gap-x-4 gap-y-2 items-center">
+        <BtnPrimary href={reachHref} external>Reach Out <ArrowRight size={14} strokeWidth={2.6} /></BtnPrimary>
+        {lot.mapsQuery && (
+          <a href={appleMaps(lot.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+            <Navigation size={13} strokeWidth={2.4} /> Maps
+          </a>
         )}
-        <div style={{ marginTop: 14, borderTop: `2px solid ${C.border}`, paddingTop: 14 }}>
-          <div className="num flex items-baseline gap-2" style={{ fontSize: 26, color: C.ink }}>
-            {money(lot.lotOnlyPrice)}
-            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: 13, fontWeight: 600, color: C.inkSoft }}>Flat</span>
-          </div>
-          {hasMoveIn && (
-            <div style={{ marginTop: 8, background: C.paper, border: `2px solid ${C.goldDeep}`, borderRadius: 10, padding: '8px 12px' }}>
-              <div className="label" style={{ color: C.goldDeep, fontSize: 9 }}>Or Move In For As Little As</div>
-              <div className="num" style={{ fontSize: 22, color: C.goldDeep, lineHeight: 1, marginTop: 2 }}>{money(lot.moveInPrice as number)}</div>
-            </div>
-          )}
-        </div>
-        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
-          <BtnPrimary href={reserveHref} external full>Reserve Lot {lot.lotNumber} <ArrowRight size={15} strokeWidth={2.6} /></BtnPrimary>
-        </div>
       </div>
     </article>
   );
@@ -470,7 +448,7 @@ function PlatDirectory() {
         <button onClick={() => setAvailOnly((s) => !s)}
           style={{ fontSize: 14, fontWeight: 600, padding: '9px 18px', borderRadius: 999, minHeight: 44,
             background: availOnly ? C.ink : C.card, color: availOnly ? C.paper : C.ink, border: `2px solid ${availOnly ? C.ink : C.border}` }}>
-          {availOnly ? 'Available Only' : 'Show All 142'}
+          {availOnly ? 'Available Only' : `Show All ${LOTS.length}`}
         </button>
         <select value={sort} onChange={(e) => setSort(e.target.value)}
           style={{ fontSize: 14, fontWeight: 600, padding: '9px 18px', borderRadius: 999, minHeight: 44, background: C.card, color: C.ink, border: `2px solid ${C.border}`, appearance: 'none' }}>
@@ -528,39 +506,55 @@ function PlatDirectory() {
   );
 }
 
-/* ------------------------------------------------------------------ Block 2 pipeline */
+/* ------------------------------------------------------------------ developments (lifecycle) */
+function StageBar({ index }: { index: number }) {
+  return (
+    <div className="flex items-end gap-1.5" style={{ width: '100%' }}>
+      {STAGES.map((s, i) => {
+        const active = i <= index;
+        const current = i === index;
+        return (
+          <div key={s} style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ height: 5, borderRadius: 999, background: active ? C.goldDeep : C.border }} />
+            <div className="label" style={{ fontSize: 9, marginTop: 5, color: current ? C.goldDeep : C.inkSoft, opacity: current ? 1 : 0.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {s}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Pipeline() {
   return (
-    <section id="building" style={{ maxWidth: 1180, margin: '0 auto', padding: '72px 20px 8px' }}>
+    <section id="developments" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
       <span className="label" style={{ color: C.goldDeep }}>Subdivision Pipeline</span>
-      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>From Raw Acres To Rooftops.</h2>
-      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 620 }}>
-        What FEREST controls across the Valley, engineered and entitled in-house. Reach out for the detail on any one.
+      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Developments We Run.</h2>
+      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
+        Every project taken through the full cycle - feasibility, plans, construction, sales. Engineered and entitled in-house. Reach out for the detail on any one.
       </p>
 
       <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>
         {PIPELINE_ROWS.map((p, i) => (
-          <div key={p.id} className="row-link flex items-center justify-between gap-4 flex-wrap"
-            style={{ padding: '18px 20px', borderTop: i === 0 ? 'none' : `2px solid ${C.border}` }}>
-            <div>
-              <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.6rem)', color: C.ink }}>{publicNameOf(p)}</div>
-              <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
-                <MapPin size={13} strokeWidth={2} /> {p.city}
+          <div key={p.id} style={{ padding: '18px 20px', borderTop: i === 0 ? 'none' : `2px solid ${C.border}` }}>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.6rem)', color: C.ink }}>{publicNameOf(p)}</div>
+                <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
+                  <MapPin size={13} strokeWidth={2} /> {p.city}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="label" style={{ background: C.ink, color: C.paper, padding: '6px 12px', borderRadius: 999, fontSize: 10 }}>{p.devType}</span>
+                {p.stats.slice(0, 3).map((s) => (
+                  <span key={s.label} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.ink }}>
+                    <span className="num" style={{ fontSize: 14 }}>{s.value}</span> <span style={{ color: C.inkSoft }}>{s.label}</span>
+                  </span>
+                ))}
               </div>
             </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="label" style={{ background: C.ink, color: C.paper, padding: '6px 12px', borderRadius: 999, fontSize: 10 }}>
-                {p.devType}
-              </span>
-              {p.stats.slice(0, 3).map((s) => (
-                <span key={s.label} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.ink }}>
-                  <span className="num" style={{ fontSize: 14 }}>{s.value}</span> <span style={{ color: C.inkSoft }}>{s.label}</span>
-                </span>
-              ))}
-              <span className="label" style={{ background: STATUS_CHIP[p.status], color: '#1A160A', padding: '6px 12px', borderRadius: 999, fontSize: 10 }}>
-                {p.status}
-              </span>
-            </div>
+            <div style={{ marginTop: 14, maxWidth: 460 }}><StageBar index={p.stageIndex} /></div>
           </div>
         ))}
       </div>
@@ -575,38 +569,125 @@ function Pipeline() {
 /* ------------------------------------------------------------------ design + build */
 function DesignBuild() {
   return (
-    <section id="build" style={{ maxWidth: 1180, margin: '0 auto', padding: '72px 20px 8px' }}>
+    <section id="build" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
       <span className="label" style={{ color: C.goldDeep }}>Design + Build</span>
-      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Under Construction Across The Valley.</h2>
-      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 620 }}>
-        We do not just sell the dirt - we build on it. Homes going up now, plus commercial spaces we have designed and delivered.
+      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Built By FEREST.</h2>
+      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
+        We do not just sell the dirt - we build on it. Homes delivered, plus commercial spaces we have designed and built across the Valley.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
-        {CONSTRUCTION.map((b) => (
-          <article key={b.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden' }}>
-            <div style={{ position: 'relative' }}>
-              <SmartImg src={b.image} alt={b.name} label={b.name}
-                style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', display: 'block' }} />
-              <span className="label" style={{ position: 'absolute', top: 12, left: 12, background: b.type === 'Home' ? C.gold : C.ink, color: b.type === 'Home' ? '#1A160A' : C.paper, padding: '5px 10px', borderRadius: 999, fontSize: 10 }}>
-                {b.type === 'Home' ? <Hammer size={10} strokeWidth={2.6} style={{ display: 'inline', verticalAlign: '-1px', marginRight: 5 }} /> : null}
-                {b.type}
-              </span>
-              {b.status && (
-                <span className="label" style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(18,19,16,0.7)', color: C.paper, padding: '5px 10px', borderRadius: 999, fontSize: 9 }}>
-                  {b.status}
+        {CONSTRUCTION.map((b) => {
+          const sold = b.status === 'Sold';
+          const concept = b.status === 'Concept';
+          const statusBg = sold ? C.ink : concept ? C.paperDeep : C.wa;
+          const statusFg = sold ? C.paper : concept ? C.inkSoft : C.waText;
+          return (
+            <article key={b.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ position: 'relative' }}>
+                <SmartImg src={b.image} alt={b.name} label={b.name}
+                  style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', display: 'block' }} />
+                <span className="label" style={{ position: 'absolute', top: 12, left: 12, background: b.type === 'Home' ? C.gold : C.ink, color: b.type === 'Home' ? '#1A160A' : C.paper, padding: '5px 10px', borderRadius: 999, fontSize: 10 }}>
+                  {b.type === 'Home' ? <Hammer size={10} strokeWidth={2.6} style={{ display: 'inline', verticalAlign: '-1px', marginRight: 5 }} /> : null}
+                  {b.type}
                 </span>
-              )}
-            </div>
-            <div style={{ padding: 18 }}>
-              <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)', color: C.ink }}>{b.name}</div>
-              <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 3 }}>
-                <MapPin size={13} strokeWidth={2} /> {b.location}
+                {b.status && (
+                  <span className="label" style={{ position: 'absolute', top: 12, right: 12, background: statusBg, color: statusFg, padding: '5px 10px', borderRadius: 999, fontSize: 9 }}>
+                    {b.status}
+                  </span>
+                )}
               </div>
-            </div>
-          </article>
-        ))}
+              <div style={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)', color: C.ink }}>{b.name}</div>
+                <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 3 }}>
+                  <MapPin size={13} strokeWidth={2} /> {b.location}
+                </div>
+                {(b.mapsQuery || b.website) && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3" style={{ marginTop: 'auto', paddingTop: 12 }}>
+                    {b.website && (
+                      <a href={b.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                        <ExternalLink size={13} strokeWidth={2.4} /> Visit Site
+                      </a>
+                    )}
+                    {b.mapsQuery && (
+                      <a href={appleMaps(b.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                        <Navigation size={13} strokeWidth={2.4} /> View On Maps
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
+  );
+}
+
+/* ------------------------------------------------------------------ where we build map */
+function ParcelMap() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let map: any;
+    let cancelled = false;
+    function init() {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = (window as any).L;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const el = ref.current as any;
+      if (!L || !el || el._leaflet_id) return;
+      map = L.map(el, { scrollWheelZoom: false }).setView([26.19, -98.2], 10);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 19,
+      }).addTo(map);
+      const pts: [number, number][] = [];
+      MAP_PARCELS.forEach((p) => {
+        const built = p.kind === 'built';
+        L.circleMarker([p.lat, p.lng], {
+          radius: 10, color: '#B08228', weight: 2,
+          fillColor: built ? '#121310' : '#E0B64A', fillOpacity: 0.5,
+        }).addTo(map).bindTooltip(p.name, { direction: 'top', offset: [0, -6] });
+        pts.push([p.lat, p.lng]);
+      });
+      if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: 12 });
+      setReady(true);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).L) { init(); return () => { if (map) map.remove(); }; }
+    if (!document.getElementById('leaflet-css')) {
+      const css = document.createElement('link');
+      css.id = 'leaflet-css'; css.rel = 'stylesheet';
+      css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(css);
+    }
+    let script = document.getElementById('leaflet-js') as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'leaflet-js';
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      document.body.appendChild(script);
+    }
+    const onload = () => { if (!cancelled) init(); };
+    script.addEventListener('load', onload);
+    if ((window as unknown as { L?: unknown }).L) init();
+    return () => { cancelled = true; script?.removeEventListener('load', onload); if (map) map.remove(); };
+  }, []);
+  return (
+    <div style={{ marginTop: 24 }}>
+      <div style={{ position: 'relative', zIndex: 0, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}` }}>
+        <div ref={ref} style={{ height: 380, width: '100%', background: C.paperDeep }} />
+        {!ready && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            <span className="label" style={{ color: C.goldDeep }}>Loading Map...</span>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-4 mt-3" style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft }}>
+        <span className="flex items-center gap-1.5"><span style={{ width: 12, height: 12, borderRadius: 999, background: '#E0B64A', border: '2px solid #B08228' }} /> Developed</span>
+        <span className="flex items-center gap-1.5"><span style={{ width: 12, height: 12, borderRadius: 999, background: '#121310', border: '2px solid #B08228' }} /> Built</span>
+      </div>
+    </div>
   );
 }
 
@@ -617,8 +698,20 @@ function Portfolio() {
       <span className="label" style={{ color: C.goldDeep }}>Platted &amp; Engineered By Our Team</span>
       <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: C.ink, marginTop: 8 }}>The Track Record.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        Subdivisions our team designed, platted, and engineered across the Valley. Filed under M2 Engineering, PLLC, TBPELS F-19545.
+        Subdivisions our team designed, platted, and engineered across the Valley.
       </p>
+      <div className="inline-flex items-center gap-2.5 mt-4" style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 999, padding: '8px 16px' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft }}>Engineered By</span>
+        <a href={LINKS.m2} target="_blank" rel="noopener noreferrer" aria-label="M2 Engineering">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND.m2} alt="M2 Engineering" style={{ height: 20, width: 'auto', display: 'block' }} />
+        </a>
+        <span aria-hidden style={{ width: 1, height: 16, background: C.border }} />
+        <span className="label" style={{ fontSize: 10, color: C.goldDeep }}>TBPELS F-19545</span>
+      </div>
+
+      <ParcelMap />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
         {PORTFOLIO.map((p) => (
           <article key={p.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
@@ -643,6 +736,11 @@ function Portfolio() {
                 </span>
               ))}
             </div>
+            {p.mapsQuery && (
+              <a href={appleMaps(p.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-3" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                <Navigation size={13} strokeWidth={2.4} /> View On Maps
+              </a>
+            )}
             {p.note && (
               <div style={{ marginTop: 14, borderTop: `2px solid ${C.border}`, paddingTop: 14 }}>
                 <div style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}>{p.note}</div>

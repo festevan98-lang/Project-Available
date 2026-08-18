@@ -5,6 +5,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // FEREST x M2 brand system (revamp v3). Paper-light theme.
+        paper: {
+          DEFAULT: '#F4F1E8',
+          deep: '#ECE8DC',
+        },
+        gold: {
+          DEFAULT: '#E0B64A',
+          deep: '#B08228',
+          hi: '#F0D076',
+        },
+        card: '#FFFFFF',
+        whatsapp: '#25D366',
+        // brass + ink scales retained for admin/internal tooling.
         brass: {
           50: '#fdf8ec',
           100: '#f8ecc8',
@@ -18,6 +31,8 @@ const config: Config = {
           900: '#3d2c15',
         },
         ink: {
+          DEFAULT: '#121310',
+          soft: '#4A4C46',
           50: '#f5f4f0',
           100: '#e8e6df',
           200: '#cfccc1',
@@ -30,8 +45,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-fraunces)', 'Georgia', 'serif'],
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-anton)', 'Impact', 'Haettenschweiler', 'sans-serif'],
+        sans: ['var(--font-oswald)', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
         prose: '65ch',

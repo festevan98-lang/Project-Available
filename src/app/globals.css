@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -12,14 +12,26 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Paper + 26px blueprint grid. Two 1px linear-gradients at low-opacity sage. */
 body {
-  background:
-    radial-gradient(ellipse at top, rgba(192, 138, 42, 0.06), transparent 60%),
-    #100f0d;
-  background-attachment: fixed;
+  background-color: #f4f1e8;
+  background-image:
+    linear-gradient(to right, rgba(120, 125, 110, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 125, 110, 0.1) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
   min-height: 100dvh;
 }
 
 body.scroll-lock {
   overflow: hidden;
+}
+
+/* Utility: hide scrollbars on horizontal chip rows. */
+.noscroll::-webkit-scrollbar {
+  display: none;
+}
+.noscroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

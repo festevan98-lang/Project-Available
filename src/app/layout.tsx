@@ -1,27 +1,30 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Inter } from 'next/font/google';
+import { Anton, Oswald } from 'next/font/google';
 import './globals.css';
 
-const fraunces = Fraunces({
+// Display + all numbers: Anton, all-caps. Everything else: Oswald 400/600/700.
+const anton = Anton({
   subsets: ['latin'],
-  variable: '--font-fraunces',
+  weight: '400',
+  variable: '--font-anton',
   display: 'swap',
 });
 
-const inter = Inter({
+const oswald = Oswald({
   subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '600', '700'],
+  variable: '--font-oswald',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'FEREST — Raw Land · Rooftops · Revenue',
   description:
-    'Lots, build options, and financing in the Rio Grande Valley. Engineered, platted, and entitled in-house by FEREST.',
+    'Own the lot. Build the home. Lots and build packages in the Rio Grande Valley, platted, entitled, and engineered in-house by FEREST with M2 Engineering.',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0b09',
+  themeColor: '#F4F1E8',
   viewportFit: 'cover',
   width: 'device-width',
   initialScale: 1,
@@ -33,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
-      <body className="bg-ink-950 text-ink-50 antialiased min-h-[100dvh]">
+    <html lang="en" className={`${anton.variable} ${oswald.variable}`}>
+      <body className="bg-paper text-ink font-sans antialiased min-h-[100dvh]">
         {children}
       </body>
     </html>

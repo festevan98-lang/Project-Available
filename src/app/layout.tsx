@@ -18,7 +18,7 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: 'FEREST — Raw Land · Rooftops · Revenue',
+  title: 'FEREST · Raw Land · Rooftops · Revenue',
   description:
     'Own the lot. Build the home. Lots and build packages in the Rio Grande Valley, platted, entitled, and engineered in-house by FEREST with M2 Engineering.',
 };

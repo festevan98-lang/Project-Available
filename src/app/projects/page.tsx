@@ -2,16 +2,18 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  MapPin, Phone, MessageCircle, ArrowRight, ArrowUpRight, X, Search,
+  MapPin, Phone, MessageCircle, ArrowRight, ArrowUpRight, X, Search, Hammer, Compass,
 } from 'lucide-react';
-import { PIPELINE_ROWS, publicNameOf, type ProjectStatus } from '@/data/projects';
+import {
+  PIPELINE_ROWS, publicNameOf, PORTFOLIO, CONSTRUCTION, LAND_PIPELINE, type ProjectStatus,
+} from '@/data/projects';
 
 /*
   FEREST PORTAL - revamp v3.
   One scrolling page in the FEREST x M2 paper brand system. Three blocks:
   1. BUY OR BUILD (retail, owned lots)  2. WHAT WE'RE BUILDING (pipeline)
   3. OFF-MARKET (one investor strip). Contact one tap from anywhere.
-  Copy: Title Case, ASCII, no ROI / no Los Milagros / no em-dash.
+  Copy: Title Case, ASCII, no return-math, no private deal names, no em-dash.
 */
 
 /* ------------------------------------------------------------------ links */
@@ -42,11 +44,11 @@ const BRAND = {
 const HERO_IMG = '/plats/laguna-heights-hero.jpg';
 const PLAT_IMG = '/plats/laguna-heights-plat.png';
 const MODEL_EXT = [
-  '/models/ferest-model-ext-1.jpg',
-  '/models/ferest-model-ext-2.jpg',
-  '/models/ferest-model-ext-3.jpg',
+  '/models/ferest-model-ext-1.webp',
+  '/models/ferest-model-ext-2.webp',
+  '/models/ferest-model-ext-3.webp',
 ];
-const MODEL_INT = ['/models/ferest-model-kitchen.jpg', '/models/ferest-model-living.jpg'];
+const MODEL_INT = ['/models/ferest-model-kitchen.webp', '/models/ferest-model-living.webp'];
 
 /* ------------------------------------------------------------------ palette */
 const C = {
@@ -186,6 +188,8 @@ export default function App() {
       <main>
         <BuyOrBuild showPlat={showPlat} setShowPlat={setShowPlat} />
         <Pipeline />
+        <DesignBuild />
+        <Portfolio />
         <OffMarket />
       </main>
 
@@ -565,15 +569,111 @@ function Pipeline() {
   );
 }
 
+/* ------------------------------------------------------------------ design + build */
+function DesignBuild() {
+  return (
+    <section id="build" style={{ maxWidth: 1180, margin: '0 auto', padding: '72px 20px 8px' }}>
+      <span className="label" style={{ color: C.goldDeep }}>Design + Build</span>
+      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Under Construction Across The Valley.</h2>
+      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 620 }}>
+        We do not just sell the dirt - we build on it. Homes going up now, plus commercial spaces we have designed and delivered.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
+        {CONSTRUCTION.map((b) => (
+          <article key={b.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{ position: 'relative' }}>
+              <SmartImg src={b.image} alt={b.name} label={b.name}
+                style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', display: 'block' }} />
+              <span className="label" style={{ position: 'absolute', top: 12, left: 12, background: b.type === 'Home' ? C.gold : C.ink, color: b.type === 'Home' ? '#1A160A' : C.paper, padding: '5px 10px', borderRadius: 999, fontSize: 10 }}>
+                {b.type === 'Home' ? <Hammer size={10} strokeWidth={2.6} style={{ display: 'inline', verticalAlign: '-1px', marginRight: 5 }} /> : null}
+                {b.type}
+              </span>
+              {b.status && (
+                <span className="label" style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(18,19,16,0.7)', color: C.paper, padding: '5px 10px', borderRadius: 999, fontSize: 9 }}>
+                  {b.status}
+                </span>
+              )}
+            </div>
+            <div style={{ padding: 18 }}>
+              <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)', color: C.ink }}>{b.name}</div>
+              <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 3 }}>
+                <MapPin size={13} strokeWidth={2} /> {b.location}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ portfolio */
+function Portfolio() {
+  return (
+    <section id="portfolio" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
+      <span className="label" style={{ color: C.goldDeep }}>Platted &amp; Engineered By Our Team</span>
+      <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: C.ink, marginTop: 8 }}>The Track Record.</h2>
+      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
+        Recorded subdivisions our team platted and engineered across Hidalgo County. Filed under M2 Engineering, PLLC, TBPELS F-19545.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
+        {PORTFOLIO.map((p) => (
+          <article key={p.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)', color: C.ink }}>{p.name}</div>
+                <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 3 }}>
+                  <MapPin size={13} strokeWidth={2} /> {p.city}
+                </div>
+              </div>
+              <Compass size={18} color={C.goldDeep} strokeWidth={2} style={{ flexShrink: 0, marginTop: 4 }} />
+            </div>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {p.stats.map((s) => (
+                <span key={s.label} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.ink }}>
+                  <span className="num" style={{ fontSize: 14 }}>{s.value}</span> <span style={{ color: C.inkSoft }}>{s.label}</span>
+                </span>
+              ))}
+            </div>
+            {p.note && (
+              <div style={{ marginTop: 14, borderTop: `2px solid ${C.border}`, paddingTop: 14 }}>
+                <div style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}>{p.note}</div>
+                {p.noteCta && (
+                  <a href={wa(p.noteCta.waText)} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-2" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                    {p.noteCta.label} <ArrowRight size={13} strokeWidth={2.6} />
+                  </a>
+                )}
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ------------------------------------------------------------------ Block 3 off-market */
 function OffMarket() {
   return (
-    <section id="offmarket" style={{ maxWidth: 1180, margin: '48px auto 0', padding: '0 20px' }}>
+    <section id="offmarket" style={{ maxWidth: 1180, margin: '56px auto 0', padding: '0 20px' }}>
       <div style={{ background: C.paperDeep, border: `2px solid ${C.border}`, borderRadius: 18, padding: 'clamp(28px, 6vw, 48px)' }}>
         <span className="label" style={{ color: C.goldDeep }}>For Builders &amp; Investors</span>
         <p className="display" style={{ fontSize: 'clamp(1.5rem, 4.5vw, 2.4rem)', color: C.ink, marginTop: 10, maxWidth: 780 }}>
           We Control Off-Market Dirt Across The Valley - Engineered, Entitled, Or Shovel-Ready.
         </p>
+
+        {/* land pipeline teaser - names only, detail lives in the deal sheet */}
+        <div className="flex flex-wrap gap-2.5 mt-6">
+          {LAND_PIPELINE.map((d) => (
+            <span key={d.id} className="inline-flex items-center gap-2" style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 600, color: C.ink }}>
+              <Compass size={13} color={C.goldDeep} strokeWidth={2.2} />
+              <span className="num" style={{ fontSize: 14 }}>{d.area}</span>
+              <span style={{ color: C.inkSoft }}>{d.city}</span>
+            </span>
+          ))}
+        </div>
+
         <div className="flex flex-wrap gap-3 mt-7">
           <BtnGhost href={wa('Hi FEREST, Send Me The Off-Market Deal Sheet.')} external>
             Request The Deal Sheet <ArrowRight size={15} strokeWidth={2.6} />

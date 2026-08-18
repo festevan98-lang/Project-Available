@@ -549,6 +549,9 @@ function Pipeline() {
               </div>
             </div>
             <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="label" style={{ background: C.ink, color: C.paper, padding: '6px 12px', borderRadius: 999, fontSize: 10 }}>
+                {p.devType}
+              </span>
               {p.stats.slice(0, 3).map((s) => (
                 <span key={s.label} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.ink }}>
                   <span className="num" style={{ fontSize: 14 }}>{s.value}</span> <span style={{ color: C.inkSoft }}>{s.label}</span>
@@ -614,13 +617,18 @@ function Portfolio() {
       <span className="label" style={{ color: C.goldDeep }}>Platted &amp; Engineered By Our Team</span>
       <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: C.ink, marginTop: 8 }}>The Track Record.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        Recorded subdivisions our team platted and engineered across Hidalgo County. Filed under M2 Engineering, PLLC, TBPELS F-19545.
+        Subdivisions our team designed, platted, and engineered across the Valley. Filed under M2 Engineering, PLLC, TBPELS F-19545.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
         {PORTFOLIO.map((p) => (
           <article key={p.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
             <div className="flex items-start justify-between gap-3">
               <div>
+                {p.tag && (
+                  <span className="label" style={{ display: 'inline-block', background: C.gold, color: '#1A160A', padding: '4px 10px', borderRadius: 999, fontSize: 9, marginBottom: 8 }}>
+                    {p.tag}
+                  </span>
+                )}
                 <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)', color: C.ink }}>{p.name}</div>
                 <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 3 }}>
                   <MapPin size={13} strokeWidth={2} /> {p.city}

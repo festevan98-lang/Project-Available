@@ -28,7 +28,9 @@ export interface Subdivision {
   publicName?: string;
   city: string;
   status: ProjectStatus;
-  /** Up to three chips shown in the pipeline row. */
+  /** Development type chip: Single-Family, Townhomes, Duplex, etc. */
+  devType: string;
+  /** Up to three numeric chips shown in the pipeline row. No prices. */
   stats: ProjectStat[];
   audience: Array<'retail' | 'pipeline'>;
   flags?: { hidden?: boolean; ownerConfirm?: boolean };
@@ -40,6 +42,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Laguna Heights',
     city: 'Mission, TX',
     status: 'Selling',
+    devType: 'Single-Family',
     stats: [
       { label: 'Lots', value: '142' },
       { label: 'Acres', value: '27' },
@@ -51,10 +54,10 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Laguna Oaks Phase II',
     city: 'Mission, TX',
     status: 'Selling',
+    devType: 'Single-Family',
     stats: [
       { label: 'FEREST Lots', value: '3' },
       { label: 'Acres', value: '15.8' },
-      { label: 'Typical Lot', value: '6,000 Sqft' },
     ],
     audience: ['retail', 'pipeline'],
   },
@@ -63,6 +66,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Augusta Townhomes',
     city: 'Mission, TX',
     status: 'Ready',
+    devType: 'Townhomes',
     stats: [
       { label: 'Lots', value: '30' },
       { label: 'Acres', value: '2.727' },
@@ -75,21 +79,11 @@ export const SUBDIVISIONS: Subdivision[] = [
     publicName: 'Duplex Development, Conway Corridor',
     city: 'Mission, TX',
     status: 'Ready',
+    devType: 'Duplex',
     stats: [
       { label: 'Lots', value: '48' },
       { label: 'Units', value: '96' },
       { label: 'Acres', value: '9.37' },
-    ],
-    audience: ['pipeline'],
-  },
-  {
-    id: 'angelica-2',
-    name: "Angelica's Dream V2",
-    city: 'Weslaco / Alamo, TX',
-    status: 'In Design',
-    stats: [
-      { label: 'Lots', value: '68' },
-      { label: 'Acres', value: '10' },
     ],
     audience: ['pipeline'],
   },
@@ -113,6 +107,8 @@ export interface PortfolioProject {
   id: string;
   name: string;
   city: string;
+  /** Optional status chip, e.g. "Success Story" or "Sold". */
+  tag?: string;
   stats: ProjectStat[];
   /** Optional availability note (e.g. a built unit for rent or sale). */
   note?: string;
@@ -121,6 +117,18 @@ export interface PortfolioProject {
 }
 
 export const PORTFOLIO: PortfolioProject[] = [
+  {
+    id: 'angelica-2',
+    name: "Angelica's Dream V2",
+    city: 'Weslaco / Alamo, TX',
+    tag: 'Success Story',
+    stats: [
+      { label: 'Lots', value: '68' },
+      { label: 'Acres', value: '10' },
+      { label: 'Type', value: 'Single-Family' },
+    ],
+    note: 'Designed By Our Team. Sold And Now Being Built By The Buyer.',
+  },
   {
     id: 'las-cumbres',
     name: 'Las Cumbres Terrace',

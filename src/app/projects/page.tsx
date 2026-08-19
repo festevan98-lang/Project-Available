@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   MapPin, Phone, MessageCircle, ArrowRight, ArrowUpRight, X, Search, Hammer, Compass,
-  Navigation, ExternalLink,
+  Navigation, ExternalLink, ChevronDown,
 } from 'lucide-react';
 import {
   PIPELINE_ROWS, publicNameOf, PORTFOLIO, CONSTRUCTION, LAND_PIPELINE, MAP_PARCELS, STAGES,
@@ -152,6 +152,29 @@ function BtnGhost({ href, onClick, children, full, external }: BtnProps) {
     : <button onClick={onClick} style={style}>{children}</button>;
 }
 
+/* ------------------------------------------------------------------ accordion (dropdown) */
+function Accordion({ id, eyebrow, title, subtitle, children }: {
+  id?: string; eyebrow?: string; title: string; subtitle?: string; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section id={id} style={{ maxWidth: 1180, margin: '0 auto', padding: '14px 20px 0' }}>
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between gap-4 text-left"
+        style={{ background: C.card, border: `2px solid ${open ? C.goldDeep : C.border}`, borderRadius: 16, padding: '18px 22px', cursor: 'pointer' }}>
+        <div>
+          {eyebrow && <span className="label" style={{ color: C.goldDeep }}>{eyebrow}</span>}
+          <div className="display" style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', color: C.ink, marginTop: eyebrow ? 4 : 0 }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 13, color: C.inkSoft, fontWeight: 500, marginTop: 4 }}>{subtitle}</div>}
+        </div>
+        <span style={{ flexShrink: 0, width: 42, height: 42, borderRadius: 999, border: `2px solid ${C.goldDeep}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.goldDeep, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+          <ChevronDown size={20} strokeWidth={2.4} />
+        </span>
+      </button>
+      {open && <div className="fade" style={{ marginTop: 16 }}>{children}</div>}
+    </section>
+  );
+}
+
 /* ================================================================== PAGE */
 export default function App() {
   const [showPlat, setShowPlat] = useState(false);
@@ -181,10 +204,10 @@ export default function App() {
       <main>
         <Hero />
         <Pipeline />
+        <OffMarket />
         <Portfolio />
         <DesignBuild />
         <Homes showPlat={showPlat} setShowPlat={setShowPlat} />
-        <OffMarket />
       </main>
 
       <Footer />
@@ -246,15 +269,10 @@ function Hero() {
 /* ------------------------------------------------------------------ Homes (simple, under developments) */
 function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: boolean) => void }) {
   return (
-    <section id="homes" className="fade" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
-      <span className="label" style={{ color: C.goldDeep }}>FEREST Homes</span>
-      <h2 className="display" style={{ fontSize: 'clamp(2rem, 5.5vw, 3rem)', color: C.ink, marginTop: 8 }}>Buy A Lot Or Build To Suit.</h2>
-      <p style={{ marginTop: 10, fontSize: 15, color: C.inkSoft, maxWidth: 660, fontWeight: 500 }}>
-        Vacant lots FEREST owns across Laguna Oaks and Laguna Heights. Take the lot as-is, or we build our model to your floor plan. Pricing is by request.
-      </p>
-
+    <Accordion id="homes" eyebrow="FEREST Homes" title="Buy A Lot Or Build To Suit"
+      subtitle="Vacant lots FEREST owns. Take the lot as-is or build our model. Pricing by request - tap to view.">
       {/* one model peek - not repeated per card */}
-      <div className="grid grid-cols-2 gap-3 mt-6">
+      <div className="grid grid-cols-2 gap-3">
         {MODEL_INT.map((src) => (
           <SmartImg key={src} src={src} alt="FEREST model home interior" label="Our Model"
             style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', borderRadius: 14, border: `2px solid ${C.border}` }} />
@@ -283,7 +301,7 @@ function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: 
       </div>
 
       {showPlat && <PlatDirectory />}
-    </section>
+    </Accordion>
   );
 }
 
@@ -526,36 +544,84 @@ function StageBar({ index }: { index: number }) {
   );
 }
 
+function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolean }) {
+  const [open, setOpen] = useState(false);
+  const canExpand = !!p.detail;
+  return (
+    <div style={{ borderTop: first ? 'none' : `2px solid ${C.border}` }}>
+      <button
+        onClick={() => canExpand && setOpen((v) => !v)}
+        className="w-full text-left"
+        style={{ display: 'block', width: '100%', padding: '18px 20px', background: 'transparent', cursor: canExpand ? 'pointer' : 'default' }}
+        aria-expanded={open}
+      >
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="display flex items-center gap-2" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.6rem)', color: C.ink }}>
+              {publicNameOf(p)}
+              {canExpand && (
+                <ChevronDown size={18} strokeWidth={2.6} color={C.goldDeep} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+              )}
+            </div>
+            <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
+              <MapPin size={13} strokeWidth={2} /> {p.city}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="label" style={{ background: C.ink, color: C.paper, padding: '6px 12px', borderRadius: 999, fontSize: 10 }}>{p.devType}</span>
+            {p.stats.slice(0, 3).map((s) => (
+              <span key={s.label} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.ink }}>
+                <span className="num" style={{ fontSize: 14 }}>{s.value}</span> <span style={{ color: C.inkSoft }}>{s.label}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginTop: 14, maxWidth: 460 }}><StageBar index={p.stageIndex} /></div>
+      </button>
+
+      {open && p.detail && (
+        <div className="fade" style={{ padding: '0 20px 20px' }}>
+          <div style={{ borderTop: `2px solid ${C.border}`, paddingTop: 16 }}>
+            <p style={{ fontSize: 15, color: C.ink, fontWeight: 500, maxWidth: 700, lineHeight: 1.5 }}>{p.detail}</p>
+            {p.features && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {p.features.map((f) => (
+                  <span key={f} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, color: C.ink }}>{f}</span>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-x-4 gap-y-2 items-center mt-5">
+              <BtnPrimary href={wa(`Hey FEREST, Tell Me More About ${publicNameOf(p)}.`)} external>
+                Ask About This <ArrowRight size={14} strokeWidth={2.6} />
+              </BtnPrimary>
+              {p.mapsQuery && (
+                <a href={appleMaps(p.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                  <Navigation size={13} strokeWidth={2.4} /> View On Maps
+                </a>
+              )}
+              {p.locationNote && (
+                <span style={{ fontSize: 12.5, color: C.inkSoft, fontWeight: 600 }}>{p.locationNote}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Pipeline() {
   return (
     <section id="developments" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
       <span className="label" style={{ color: C.goldDeep }}>Subdivision Pipeline</span>
       <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Developments We Run.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        Every project taken through the full cycle - feasibility, plans, construction, sales. Engineered and entitled in-house. Reach out for the detail on any one.
+        Every project taken through the full cycle - feasibility, plans, construction, sales. Engineered and entitled in-house. Tap any development for the detail.
       </p>
 
       <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>
         {PIPELINE_ROWS.map((p, i) => (
-          <div key={p.id} style={{ padding: '18px 20px', borderTop: i === 0 ? 'none' : `2px solid ${C.border}` }}>
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <div className="display" style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.6rem)', color: C.ink }}>{publicNameOf(p)}</div>
-                <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
-                  <MapPin size={13} strokeWidth={2} /> {p.city}
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="label" style={{ background: C.ink, color: C.paper, padding: '6px 12px', borderRadius: 999, fontSize: 10 }}>{p.devType}</span>
-                {p.stats.slice(0, 3).map((s) => (
-                  <span key={s.label} style={{ background: C.paper, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.ink }}>
-                    <span className="num" style={{ fontSize: 14 }}>{s.value}</span> <span style={{ color: C.inkSoft }}>{s.label}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginTop: 14, maxWidth: 460 }}><StageBar index={p.stageIndex} /></div>
-          </div>
+          <DevRow key={p.id} p={p} first={i === 0} />
         ))}
       </div>
 
@@ -569,13 +635,9 @@ function Pipeline() {
 /* ------------------------------------------------------------------ design + build */
 function DesignBuild() {
   return (
-    <section id="build" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
-      <span className="label" style={{ color: C.goldDeep }}>Design + Build</span>
-      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Built By FEREST.</h2>
-      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        We do not just sell the dirt - we build on it. Homes delivered, plus commercial spaces we have designed and built across the Valley.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
+    <Accordion id="build" eyebrow="Design + Build" title="Built By FEREST"
+      subtitle="Homes delivered and commercial spaces we have designed and built. Tap to view.">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {CONSTRUCTION.map((b) => {
           const sold = b.status === 'Sold';
           const concept = b.status === 'Concept';
@@ -620,7 +682,7 @@ function DesignBuild() {
           );
         })}
       </div>
-    </section>
+    </Accordion>
   );
 }
 
@@ -762,33 +824,39 @@ function Portfolio() {
 /* ------------------------------------------------------------------ Block 3 off-market */
 function OffMarket() {
   return (
-    <section id="offmarket" style={{ maxWidth: 1180, margin: '56px auto 0', padding: '0 20px' }}>
-      <div style={{ background: C.paperDeep, border: `2px solid ${C.border}`, borderRadius: 18, padding: 'clamp(28px, 6vw, 48px)' }}>
-        <span className="label" style={{ color: C.goldDeep }}>For Builders &amp; Investors</span>
-        <p className="display" style={{ fontSize: 'clamp(1.5rem, 4.5vw, 2.4rem)', color: C.ink, marginTop: 10, maxWidth: 780 }}>
-          We Control Off-Market Dirt Across The Valley - Engineered, Entitled, Or Shovel-Ready.
-        </p>
+    <section id="offmarket" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
+      <span className="label" style={{ color: C.goldDeep }}>Off-Market Land</span>
+      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Raw Dirt We Control.</h2>
+      <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 660 }}>
+        Engineered, entitled, or shovel-ready parcels across the Valley for builders and investors. The numbers live in the deal sheet - reach out and we send it.
+      </p>
 
-        {/* land pipeline teaser - names only, detail lives in the deal sheet */}
-        <div className="flex flex-wrap gap-2.5 mt-6">
-          {LAND_PIPELINE.map((d) => (
-            <span key={d.id} className="inline-flex items-center gap-2" style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 600, color: C.ink }}>
-              <Compass size={13} color={C.goldDeep} strokeWidth={2.2} />
-              <span className="num" style={{ fontSize: 14 }}>{d.area}</span>
-              <span style={{ color: C.inkSoft }}>{d.city}</span>
-            </span>
-          ))}
-        </div>
+      <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>
+        {LAND_PIPELINE.map((d, i) => (
+          <div key={d.id} className="flex items-center justify-between gap-4"
+            style={{ padding: '18px 20px', borderTop: i === 0 ? 'none' : `2px solid ${C.border}` }}>
+            <div className="flex items-center gap-3">
+              <Compass size={17} color={C.goldDeep} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+              <span className="display" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)', color: C.ink }}>{d.area}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>
+                <MapPin size={13} strokeWidth={2} /> {d.city}
+              </span>
+              <span className="label" style={{ background: C.paperDeep, color: C.inkSoft, padding: '5px 11px', borderRadius: 999, fontSize: 9 }}>Off-Market</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
-        <div className="flex flex-wrap gap-3 mt-7">
-          <BtnGhost href={wa('Hi FEREST, Send Me The Off-Market Deal Sheet.')} external>
-            Request The Deal Sheet <ArrowRight size={15} strokeWidth={2.6} />
-          </BtnGhost>
-          <a href={wa('Hi FEREST, I Want To Feature My Project.')} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 14, fontWeight: 600, color: C.inkSoft, alignSelf: 'center', textDecoration: 'underline', textUnderlineOffset: 3 }}>
-            Or List Your Project
-          </a>
-        </div>
+      <div className="flex flex-wrap gap-3 mt-7">
+        <BtnPrimary href={wa('Hey FEREST, Send Me The Off-Market Deal Sheet.')} external>
+          Request The Deal Sheet <ArrowRight size={15} strokeWidth={2.6} />
+        </BtnPrimary>
+        <a href={wa('Hey FEREST, I Want To Feature My Project.')} target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 14, fontWeight: 600, color: C.inkSoft, alignSelf: 'center', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+          Or List Your Project
+        </a>
       </div>
     </section>
   );

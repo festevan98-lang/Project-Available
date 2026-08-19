@@ -38,6 +38,14 @@ export interface Subdivision {
   devType: string;
   /** Up to three numeric chips shown in the pipeline row. No prices. */
   stats: ProjectStat[];
+  /** One-paragraph detail shown when the development row is expanded. */
+  detail?: string;
+  /** Short highlight bullets shown in the expanded panel. */
+  features?: string[];
+  /** Location line shown in the expanded panel. */
+  locationNote?: string;
+  /** Apple Maps query for the expanded panel. */
+  mapsQuery?: string;
   audience: Array<'retail' | 'pipeline'>;
   flags?: { hidden?: boolean; ownerConfirm?: boolean };
 }
@@ -54,6 +62,10 @@ export const SUBDIVISIONS: Subdivision[] = [
       { label: 'Lots', value: '141' },
       { label: 'Acres', value: '27' },
     ],
+    detail: 'A fully platted single-family subdivision off La Laguna Road in Mission. Engineered, entitled, and filed in-house by our team. Lots are selling now, starting in the $60s.',
+    features: ['141 single-family lots', '27 acres', 'Platted and recorded', 'Lots selling now'],
+    locationNote: 'La Laguna Rd, Mission, TX',
+    mapsQuery: 'Laguna Heights, Mission, TX',
     audience: ['retail', 'pipeline'],
   },
   {
@@ -67,6 +79,10 @@ export const SUBDIVISIONS: Subdivision[] = [
       { label: 'FEREST Lots', value: '3' },
       { label: 'Acres', value: '15.8' },
     ],
+    detail: 'Phase II of Laguna Oaks in Mission - single-family, engineered and platted by our team. FEREST owns lots 69, 70, and 71, available to buy outright or build to suit.',
+    features: ['Single-family', '15.8 acres', '6,000 sqft typical lots', 'FEREST owns lots 69-71'],
+    locationNote: '909 La Laguna Rd, Mission, TX',
+    mapsQuery: 'Laguna Oaks Phase II, Mission, TX',
     audience: ['retail', 'pipeline'],
   },
   {
@@ -80,6 +96,10 @@ export const SUBDIVISIONS: Subdivision[] = [
       { label: 'Lots', value: '30' },
       { label: 'Acres', value: '2.727' },
     ],
+    detail: 'A shovel-ready townhome development at FM-495 and Augusta Drive in Mission. Platted and engineered by our team, ready for vertical construction.',
+    features: ['30 townhome lots', '2.727 acres', 'Shovel-ready', 'FM-495 frontage'],
+    locationNote: 'FM-495 & Augusta Dr, Mission, TX',
+    mapsQuery: 'FM-495 & Augusta Dr, Mission, TX',
     audience: ['pipeline'],
   },
   {
@@ -95,6 +115,10 @@ export const SUBDIVISIONS: Subdivision[] = [
       { label: 'Units', value: '96' },
       { label: 'Acres', value: '9.37' },
     ],
+    detail: 'A duplex development along the Conway corridor in Mission - 48 lots supporting 96 units. Engineered in-house by our team and ready to build.',
+    features: ['48 duplex lots', '96 units', '9.37 acres', 'Shovel-ready'],
+    locationNote: 'Conway Ave, Mission, TX',
+    mapsQuery: 'Conway Ave, Mission, TX',
     audience: ['pipeline'],
   },
 ];

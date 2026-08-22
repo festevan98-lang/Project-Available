@@ -18,7 +18,6 @@ const TEL = 'tel:+19562030003';
 const wa = (text: string) => `${WA_BASE}?text=${encodeURIComponent(text)}`;
 
 const BRAND = { mark: '/brand/ferest-mark.webp', wordmark: '/brand/ferest-wordmark.webp' };
-const PLAT_IMG = '/plats/laguna-heights-plat.png';
 const MODEL_INT = ['/models/ferest-model-kitchen.webp', '/models/ferest-model-living.webp'];
 
 const C = {
@@ -39,16 +38,10 @@ const C = {
 const money = (v: number) =>
   v.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
-const STATUS_FILL: Record<LhLot['status'], string> = {
-  available: 'rgba(224,182,74,0.45)',
-  reserved: 'rgba(18,19,16,0.25)',
-  sold: 'rgba(18,19,16,0.55)',
-};
-const STATUS_STROKE: Record<LhLot['status'], string> = {
-  available: '#B08228',
-  reserved: '#4A4C46',
-  sold: '#121310',
-};
+// The tracker image is flood-filled by the realtor's editor, so the picture
+// itself carries current status colors. Legend matches it exactly.
+const TRACKER_GREEN = 'hsl(142, 71%, 45%)';
+const TRACKER_RED = 'hsl(0, 84%, 60%)';
 
 function Btn({ href, children, kind = 'primary', full }: {
   href: string; children: React.ReactNode; kind?: 'primary' | 'ghost' | 'wa'; full?: boolean;
@@ -78,7 +71,10 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
 
   const data = initial;
   const lots = useMemo(() => data?.lots ?? [], [data]);
-  const hasMap = !!data?.imageUrl && lots.some((l) => l.points && l.points.length >= 3);
+  // Cache-bust the tracker image with the sync timestamp so recolors show up.
+  const mapSrc = data?.imageUrl
+    ? `${data.imageUrl}${data.imageUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(data.updatedAt)}`
+    : null;
 
   const shown = useMemo(() => {
     let arr = lots;
@@ -105,8 +101,6 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
           background-size: 26px 26px; }
         .lh .fade { animation: lhfade .25s ease; }
         @keyframes lhfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-        .lh polygon { cursor: pointer; transition: fill-opacity .15s ease; }
-        .lh polygon:hover { fill-opacity: 0.85; }
         .lh .tile:hover:not(:disabled) { transform: translateY(-1px); }
         @media (max-width: 640px) { .lh .pad-bar { padding-bottom: 84px; } }
       `}</style>
@@ -171,30 +165,18 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
             )}
           </section>
 
-          {/* interactive plat */}
-          {hasMap && data && (
+          {/* live status map - the tracker image carries the current colors */}
+          {mapSrc && (
             <section style={{ padding: '28px 0 0' }}>
-              <span className="label" style={{ color: C.goldDeep }}>Tap A Lot</span>
-              <div style={{ position: 'relative', marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card }}>
+              <span className="label" style={{ color: C.goldDeep }}>The Live Map</span>
+              <div style={{ marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card, padding: 8 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={data.imageUrl ?? PLAT_IMG} alt="Laguna Heights Plat" style={{ width: '100%', display: 'block' }} />
-                <svg viewBox="0 0 1 1" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-                  {lots.filter((l) => l.points && l.points.length >= 3).map((l) => (
-                    <polygon
-                      key={l.n}
-                      points={l.points!.map((p) => `${p.x},${p.y}`).join(' ')}
-                      fill={selected?.n === l.n ? 'rgba(224,182,74,0.8)' : STATUS_FILL[l.status]}
-                      stroke={STATUS_STROKE[l.status]}
-                      strokeWidth={1.4}
-                      vectorEffect="non-scaling-stroke"
-                      onClick={() => setSelected(l)}
-                    />
-                  ))}
-                </svg>
+                <img src={mapSrc} alt="Laguna Heights Live Availability Map" style={{ width: '100%', display: 'block', borderRadius: 10 }} />
               </div>
               <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 12, fontWeight: 600, color: C.inkSoft, flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: STATUS_FILL.available, border: `2px solid ${STATUS_STROKE.available}` }} /> Available</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: STATUS_FILL.sold, border: `2px solid ${STATUS_STROKE.sold}` }} /> Sold</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: TRACKER_GREEN }} /> Available</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: TRACKER_RED }} /> Sold</span>
+                <span>Tap Any Lot Number In The List Below For Size And Price.</span>
               </div>
             </section>
           )}

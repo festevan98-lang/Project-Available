@@ -46,6 +46,8 @@ export interface Subdivision {
   locationNote?: string;
   /** Apple Maps query for the expanded panel. */
   mapsQuery?: string;
+  /** Internal page with live availability, e.g. /laguna-heights. */
+  liveHref?: string;
   audience: Array<'retail' | 'pipeline'>;
   flags?: { hidden?: boolean; ownerConfirm?: boolean };
 }
@@ -66,6 +68,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     features: ['141 single-family lots', '27 acres', 'Platted and recorded', 'Lots selling now'],
     locationNote: 'La Laguna Rd, Mission, TX',
     mapsQuery: 'Laguna Heights, Mission, TX',
+    liveHref: '/laguna-heights',
     audience: ['retail', 'pipeline'],
   },
   {

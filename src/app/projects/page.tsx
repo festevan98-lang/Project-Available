@@ -113,6 +113,30 @@ const LOT_STATUS_LABEL: Record<LotStatus, string> = {
   available: 'Available', reserved: 'Reserved', sold: 'Sold',
 };
 
+/* ------------------------------------------------------------------ live availability (ClickPlat sync) */
+interface LiveLots { lots: PortalLot[]; updatedAt: string; available: number; }
+let liveLotsPromise: Promise<LiveLots | null> | null = null;
+function fetchLiveLots(): Promise<LiveLots | null> {
+  return fetch('/api/lh-lots')
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (!j?.ok || !Array.isArray(j.lots) || j.lots.length === 0) return null;
+      return { lots: j.lots as PortalLot[], updatedAt: j.updatedAt as string, available: j.counts.available as number };
+    })
+    .catch(() => null);
+}
+/** Live Laguna Heights lots from the official tracker; falls back to the static plat data. */
+function useLiveLots(): LiveLots | null {
+  const [data, setData] = useState<LiveLots | null>(null);
+  useEffect(() => {
+    liveLotsPromise ??= fetchLiveLots();
+    let on = true;
+    liveLotsPromise.then((d) => { if (on && d) setData(d); });
+    return () => { on = false; };
+  }, []);
+  return data;
+}
+
 /* ------------------------------------------------------------------ image with graceful fallback */
 function SmartImg({ src, alt, style, label }: { src: string; alt: string; style?: React.CSSProperties; label?: string }) {
   const [err, setErr] = useState(false);
@@ -268,6 +292,11 @@ function Hero() {
 
 /* ------------------------------------------------------------------ Homes (simple, under developments) */
 function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: boolean) => void }) {
+  const live = useLiveLots();
+  const lots = live?.lots ?? LOTS;
+  const availCount = live?.available ?? AVAIL_COUNT;
+  const sqftMin = live ? Math.min(...lots.map((l) => l.sqft)) : SQFT_MIN;
+  const sqftMax = live ? Math.max(...lots.map((l) => l.sqft)) : SQFT_MAX;
   return (
     <Accordion id="homes" eyebrow="FEREST Homes" title="Buy A Lot Or Build To Suit"
       subtitle="Vacant lots FEREST owns. Take the lot as-is or build our model. Pricing by request - tap to view.">
@@ -282,8 +311,8 @@ function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: 
       {/* stat strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
         <StatTile top="Starting In The" big="$60s" sub="Lot Pricing" />
-        <StatTile top="Available Now" big={String(AVAIL_COUNT)} sub="Lots Ready" />
-        <StatTile top="Lot Sizes" big={`${SQFT_MIN.toLocaleString()}-${SQFT_MAX.toLocaleString()}`} sub="Square Feet" />
+        <StatTile top="Available Now" big={String(availCount)} sub={live ? 'Lots Ready - Live Count' : 'Lots Ready'} />
+        <StatTile top="Lot Sizes" big={`${sqftMin.toLocaleString()}-${sqftMax.toLocaleString()}`} sub="Square Feet" />
       </div>
 
       {/* owned lots - compact reach-out cards */}
@@ -293,14 +322,17 @@ function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: 
 
       <div className="mt-4"><FhaCalculator /></div>
 
-      <div className="flex justify-center mt-8">
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 mt-8">
         <BtnGhost onClick={() => setShowPlat(!showPlat)}>
-          {showPlat ? 'Hide The Plat' : `See All ${AVAIL_COUNT} Lots`}
+          {showPlat ? 'Hide The Plat' : `See All ${availCount} Lots`}
           <ArrowRight size={15} strokeWidth={2.6} style={{ transform: showPlat ? 'rotate(-90deg)' : 'rotate(90deg)', transition: 'transform .2s' }} />
         </BtnGhost>
+        <a href="/laguna-heights" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+          Laguna Heights Live Availability <ArrowUpRight size={14} strokeWidth={2.6} />
+        </a>
       </div>
 
-      {showPlat && <PlatDirectory />}
+      {showPlat && <PlatDirectory lots={lots} live={!!live} />}
     </Accordion>
   );
 }
@@ -407,14 +439,14 @@ function OwnedLotCard({ lot }: { lot: InventoryLot }) {
 }
 
 /* ------------------------------------------------------------------ plat + directory */
-function PlatDirectory() {
+function PlatDirectory({ lots = LOTS, live = false }: { lots?: PortalLot[]; live?: boolean }) {
   const [selected, setSelected] = useState<PortalLot | null>(null);
   const [availOnly, setAvailOnly] = useState(true);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('num');
 
   const shown = useMemo(() => {
-    let arr = LOTS;
+    let arr = lots;
     if (availOnly) arr = arr.filter((l) => l.status === 'available');
     if (query.trim()) arr = arr.filter((l) => String(l.n).includes(query.trim()));
     arr = [...arr];
@@ -422,7 +454,7 @@ function PlatDirectory() {
     if (sort === 'priceup') arr.sort((a, b) => a.price - b.price);
     if (sort === 'size') arr.sort((a, b) => b.sqft - a.sqft);
     return arr;
-  }, [availOnly, query, sort]);
+  }, [lots, availOnly, query, sort]);
 
   return (
     <div className="fade" style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 20px 8px' }}>
@@ -466,7 +498,7 @@ function PlatDirectory() {
         <button onClick={() => setAvailOnly((s) => !s)}
           style={{ fontSize: 14, fontWeight: 600, padding: '9px 18px', borderRadius: 999, minHeight: 44,
             background: availOnly ? C.ink : C.card, color: availOnly ? C.paper : C.ink, border: `2px solid ${availOnly ? C.ink : C.border}` }}>
-          {availOnly ? 'Available Only' : `Show All ${LOTS.length}`}
+          {availOnly ? 'Available Only' : `Show All ${lots.length}`}
         </button>
         <select value={sort} onChange={(e) => setSort(e.target.value)}
           style={{ fontSize: 14, fontWeight: 600, padding: '9px 18px', borderRadius: 999, minHeight: 44, background: C.card, color: C.ink, border: `2px solid ${C.border}`, appearance: 'none' }}>
@@ -518,7 +550,9 @@ function PlatDirectory() {
       )}
 
       <div style={{ marginTop: 18, fontSize: 12, color: C.inkSoft, fontWeight: 500 }}>
-        Prices carried from the recorded plat. Availability updates as lots move.
+        {live
+          ? 'Availability synced with the official lot tracker.'
+          : 'Prices carried from the recorded plat. Availability updates as lots move.'}
       </div>
     </div>
   );
@@ -594,6 +628,11 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
               <BtnPrimary href={wa(`Hey FEREST, Tell Me More About ${publicNameOf(p)}.`)} external>
                 Ask About This <ArrowRight size={14} strokeWidth={2.6} />
               </BtnPrimary>
+              {p.liveHref && (
+                <a href={p.liveHref} className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                  Live Availability <ArrowUpRight size={13} strokeWidth={2.6} />
+                </a>
+              )}
               {p.mapsQuery && (
                 <a href={appleMaps(p.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
                   <Navigation size={13} strokeWidth={2.4} /> View On Maps

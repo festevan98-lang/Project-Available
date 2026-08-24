@@ -16,7 +16,9 @@ export interface LhLot {
   sqft: number;
   price: number;
   status: LhStatus;
-  /** Normalized 0-1 polygon over the plat image, for the interactive map. */
+  /** 'polygon' (3+ points) or 'rectangle' (2 opposite corners). */
+  shape?: 'polygon' | 'rectangle';
+  /** Normalized 0-1 coordinates over the plat image, for the interactive map. */
   points?: { x: number; y: number }[];
 }
 
@@ -33,6 +35,7 @@ interface RawLot {
   size?: string;
   price?: string;
   status?: string;
+  shapeType?: string;
   points?: { x: number; y: number }[];
 }
 
@@ -50,6 +53,7 @@ export function normalizeLots(raw: RawLot[]): LhLot[] {
       sqft: parseInt(String(l.size || '').replace(/[^0-9]/g, ''), 10) || 0,
       price: parseFloat(String(l.price || '').replace(/[^0-9.]/g, '')) || 0,
       status: normalizeStatus(l.status),
+      shape: (l.shapeType === 'rectangle' ? 'rectangle' : 'polygon') as 'polygon' | 'rectangle',
       points: l.points,
     }))
     .filter((l) => Number.isFinite(l.n) && l.n > 0)

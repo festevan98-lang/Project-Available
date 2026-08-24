@@ -101,6 +101,8 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
           background-size: 26px 26px; }
         .lh .fade { animation: lhfade .25s ease; }
         @keyframes lhfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        .lh polygon, .lh rect { cursor: pointer; transition: fill-opacity .15s ease; }
+        .lh polygon:hover, .lh rect:hover { fill-opacity: 0.75; }
         .lh .tile:hover:not(:disabled) { transform: translateY(-1px); }
         @media (max-width: 640px) { .lh .pad-bar { padding-bottom: 84px; } }
       `}</style>
@@ -165,18 +167,35 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
             )}
           </section>
 
-          {/* live status map - the tracker image carries the current colors */}
+          {/* live status map - every lot drawn from tracker geometry, colored by live status */}
           {mapSrc && (
             <section style={{ padding: '28px 0 0' }}>
-              <span className="label" style={{ color: C.goldDeep }}>The Live Map</span>
-              <div style={{ marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card, padding: 8 }}>
+              <span className="label" style={{ color: C.goldDeep }}>Tap A Lot</span>
+              <div style={{ position: 'relative', marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={mapSrc} alt="Laguna Heights Live Availability Map" style={{ width: '100%', display: 'block', borderRadius: 10 }} />
+                <img src={mapSrc} alt="Laguna Heights Plat" style={{ width: '100%', display: 'block' }} />
+                <svg viewBox="0 0 1 1" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                  {lots.filter((l) => l.points && l.points.length >= 2).map((l) => {
+                    const isSel = selected?.n === l.n;
+                    const fill = isSel ? 'rgba(224,182,74,0.85)' : l.status === 'available' ? TRACKER_GREEN : TRACKER_RED;
+                    const stroke = isSel ? C.goldDeep : l.status === 'available' ? 'hsl(142, 71%, 30%)' : 'hsl(0, 84%, 42%)';
+                    const common = {
+                      fill, stroke, strokeWidth: 1.2, fillOpacity: isSel ? 0.85 : 0.42,
+                      vectorEffect: 'non-scaling-stroke' as const, onClick: () => setSelected(l),
+                    };
+                    if (l.shape === 'rectangle' || l.points!.length === 2) {
+                      const xs = l.points!.map((p) => p.x); const ys = l.points!.map((p) => p.y);
+                      const x = Math.min(...xs); const y = Math.min(...ys);
+                      return <rect key={l.n} x={x} y={y} width={Math.max(...xs) - x} height={Math.max(...ys) - y} {...common}><title>{`Lot ${l.n} - ${l.status === 'available' ? 'Available' : 'Sold'}`}</title></rect>;
+                    }
+                    return <polygon key={l.n} points={l.points!.map((p) => `${p.x},${p.y}`).join(' ')} {...common}><title>{`Lot ${l.n} - ${l.status === 'available' ? 'Available' : 'Sold'}`}</title></polygon>;
+                  })}
+                </svg>
               </div>
               <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 12, fontWeight: 600, color: C.inkSoft, flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: TRACKER_GREEN }} /> Available</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: TRACKER_RED }} /> Sold</span>
-                <span>Tap Any Lot Number In The List Below For Size And Price.</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: TRACKER_GREEN, opacity: 0.7 }} /> Available</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: TRACKER_RED, opacity: 0.7 }} /> Sold</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: C.gold, border: `2px solid ${C.goldDeep}` }} /> Selected</span>
               </div>
             </section>
           )}

@@ -166,8 +166,9 @@ export const PORTFOLIO: PortfolioProject[] = [
     stats: [
       { label: 'SF Lots', value: '84' },
       { label: 'Commercial Pads', value: '3' },
+      { label: 'Acres', value: '19.40' },
     ],
-    mapsQuery: 'Gems Creek Subdivision, Alton, TX',
+    mapsQuery: 'S Alton Blvd, Alton, TX',
     pageHref: '/gems-creek',
     note: 'A Client Development Engineered By Our Team. Lots From $65,000 - Reserve With $1,000.',
     noteCta: { label: 'Gems Creek Info', waText: 'Hey FEREST, Send Me Info On Gems Creek.' },
@@ -289,7 +290,7 @@ export const MAP_PARCELS: MapParcel[] = [
   { id: 'one-place-pecan', name: 'One Place Pecan', lat: 26.2230, lng: -98.2435, kind: 'developed' },
   { id: 'conway-duplex', name: 'Conway Corridor Duplex', lat: 26.1910, lng: -98.2720, kind: 'developed' },
   { id: 'angelica', name: "Angelica's Dream V2", lat: 26.1590, lng: -98.0200, kind: 'developed' },
-  { id: 'gems-creek', name: 'Gems Creek', lat: 26.2840, lng: -98.3120, kind: 'developed' },
+  { id: 'gems-creek', name: 'Gems Creek', lat: 26.2780, lng: -98.3065, kind: 'developed' },
   { id: 'lot64', name: 'Lot 64 (Built)', lat: 26.1600, lng: -98.2830, kind: 'built' },
   { id: 'luma', name: 'LUMA Lounge', lat: 26.2430, lng: -98.2350, kind: 'built' },
 ];

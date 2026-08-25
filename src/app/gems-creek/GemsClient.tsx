@@ -107,8 +107,8 @@ export default function GemsClient() {
               <span style={{ color: C.ink }}>Gems</span>{' '}
               <span style={{ background: `linear-gradient(180deg, ${C.goldHi}, ${C.goldDeep})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Creek.</span>
             </h1>
-            <p style={{ marginTop: 14, fontSize: 16, fontWeight: 500, color: C.inkSoft, maxWidth: 640, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MapPin size={15} strokeWidth={2.2} /> City Of Alton, TX - A New Residential Community, Streets Going In Now.
+            <p style={{ marginTop: 14, fontSize: 16, fontWeight: 500, color: C.inkSoft, maxWidth: 660, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={15} strokeWidth={2.2} /> City Of Alton, TX - 19.40 Acres Off S. Alton Blvd (SH 107). Streets Going In Now.
             </p>
 
             {/* stat tiles */}
@@ -150,7 +150,7 @@ export default function GemsClient() {
                   onError={() => setPlatOk(false)} />
               </div>
               <div style={{ marginTop: 10, fontSize: 12, color: C.inkSoft, fontWeight: 500 }}>
-                W. Ignacio Ave · W. Jefferson Ave · W. Zinnia Ave - Current Availability Confirmed When You Reach Out.
+                Recorded Plat By M2 Engineering. Commercial Pads Front S. Alton Blvd (SH 107). Current Availability Confirmed When You Reach Out.
               </div>
             </section>
           )}

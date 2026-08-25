@@ -839,11 +839,18 @@ function Portfolio() {
                 </span>
               ))}
             </div>
-            {p.mapsQuery && (
-              <a href={appleMaps(p.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-3" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
-                <Navigation size={13} strokeWidth={2.4} /> View On Maps
-              </a>
-            )}
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
+              {p.pageHref && (
+                <a href={p.pageHref} className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                  Project Page <ArrowUpRight size={13} strokeWidth={2.6} />
+                </a>
+              )}
+              {p.mapsQuery && (
+                <a href={appleMaps(p.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                  <Navigation size={13} strokeWidth={2.4} /> View On Maps
+                </a>
+              )}
+            </div>
             {p.note && (
               <div style={{ marginTop: 14, borderTop: `2px solid ${C.border}`, paddingTop: 14 }}>
                 <div style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}>{p.note}</div>

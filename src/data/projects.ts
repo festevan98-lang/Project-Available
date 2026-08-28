@@ -15,6 +15,17 @@ export type ProjectStatus = 'Selling' | 'Ready' | 'In Design';
 export const STAGES = ['Feasibility', 'Plans', 'Construction', 'Sales'] as const;
 export type Stage = (typeof STAGES)[number];
 
+// Proof bar numbers - conservative floors derived from the published projects:
+// Subdivisions: LH, LO II, Augusta, Conway, Gems Creek, Angelica, Las Cumbres,
+//   Garden Path, One Place Pecan, LO I = 10.
+// Lots: 141 + 30 + 48 + 84 + 68 + 12 + ~80 + 14 = 470+ (floor).
+// Acres: 27 + 15.8 + 2.727 + 9.37 + 19.4 + 10 + 4.5 + 8.867 + 1.515 + 11.861 = 110+.
+export const PROOF = {
+  subdivisions: '10',
+  lots: '470+',
+  acres: '110+',
+} as const;
+
 export interface ProjectStat {
   /** Short Title Case label: Lots, Acres, Units, Typical Lot, etc. */
   label: string;

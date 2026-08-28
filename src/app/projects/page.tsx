@@ -6,7 +6,7 @@ import {
   Navigation, ExternalLink, ChevronDown,
 } from 'lucide-react';
 import {
-  PIPELINE_ROWS, publicNameOf, PORTFOLIO, CONSTRUCTION, LAND_PIPELINE, MAP_PARCELS, STAGES,
+  PIPELINE_ROWS, publicNameOf, PORTFOLIO, CONSTRUCTION, LAND_PIPELINE, MAP_PARCELS, STAGES, PROOF,
 } from '@/data/projects';
 
 /** Apple Maps search link. */
@@ -262,30 +262,60 @@ function Header() {
   );
 }
 
-/* ------------------------------------------------------------------ Hero (developments-first) */
+/* ------------------------------------------------------------------ Hero (proof-first) */
 function Hero() {
   return (
     <section id="top" className="fade" style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0 }} aria-hidden>
         <SmartImg src={HERO_IMG} alt="" label="Rio Grande Valley" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, rgba(244,241,232,0.4) 0%, rgba(244,241,232,0.6) 55%, ${C.paper} 100%)` }} />
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, rgba(244,241,232,0.55) 0%, rgba(244,241,232,0.75) 55%, ${C.paper} 100%)` }} />
       </div>
-      <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto', padding: '84px 20px 44px' }}>
-        <div className="flex items-center gap-3 mb-5">
+      <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto', padding: '64px 20px 36px' }}>
+        <div className="flex items-center gap-3 mb-4">
           <span className="label" style={{ color: C.goldDeep }}>FEREST Development</span>
           <span aria-hidden style={{ width: 20, height: 2, background: C.goldDeep, opacity: 0.6 }} />
           <span style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>Rio Grande Valley, TX</span>
         </div>
-        <h1 className="display" style={{ fontSize: 'clamp(3rem, 9vw, 6.6rem)' }}>
+        <h1 className="display" style={{ fontSize: 'clamp(2.8rem, 8.5vw, 6rem)' }}>
           <span style={{ color: C.ink }}>From Raw Acres</span><br />
           <span className="gold-text">To Rooftops.</span>
         </h1>
-        <p style={{ marginTop: 22, fontSize: 'clamp(1rem, 2.4vw, 1.3rem)', fontWeight: 500, color: C.ink, maxWidth: 680 }}>
-          We run developments from feasibility to plans to construction to sales, engineered and entitled in-house. Want a home instead? We build those too.
-        </p>
-        <div className="flex flex-wrap gap-2.5 mt-7">
+
+        {/* proof bar - the receipts, up front */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-7">
+          {[
+            { big: PROOF.subdivisions, sub: 'Subdivisions Engineered' },
+            { big: PROOF.lots, sub: 'Lots Designed Or Platted' },
+            { big: PROOF.acres, sub: 'Acres Developed' },
+            { big: '141', sub: 'Lots Selling Right Now' },
+          ].map((t) => (
+            <div key={t.sub} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 14, padding: '14px 16px' }}>
+              <div className="num" style={{ fontSize: 'clamp(1.9rem, 5vw, 2.6rem)', color: C.ink, lineHeight: 0.96 }}>{t.big}</div>
+              <div style={{ fontSize: 12, color: C.inkSoft, fontWeight: 600, marginTop: 4 }}>{t.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2.5 mt-6">
           <BtnPrimary href="#developments"><Compass size={15} strokeWidth={2.6} /> See Developments</BtnPrimary>
           <BtnGhost href="#homes">Looking For A Home</BtnGhost>
+        </div>
+
+        {/* instant visual proof - real work, not renders of promises */}
+        <div className="grid grid-cols-3 gap-3 mt-8">
+          {[
+            { src: '/plats/laguna-heights-hero.jpg', chip: '27 Acres Platted' },
+            { src: '/models/ferest-model-ext-1.webp', chip: 'The Home We Build' },
+            { src: '/construction/luma.webp', chip: 'Built And Open' },
+          ].map((p) => (
+            <div key={p.src} style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: `2px solid ${C.border}` }}>
+              <SmartImg src={p.src} alt={p.chip} label={p.chip}
+                style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', display: 'block' }} />
+              <span className="label" style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(18,19,16,0.82)', color: C.paper, padding: '4px 10px', borderRadius: 999, fontSize: 8.5 }}>
+                {p.chip}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -657,7 +687,7 @@ function Pipeline() {
       <span className="label" style={{ color: C.goldDeep }}>Subdivision Pipeline</span>
       <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Developments We Run.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        Every project taken through the full cycle - feasibility, plans, construction, sales. Engineered and entitled in-house. Tap any development for the detail.
+        Feasibility. Plans. Construction. Sales. All in-house. Tap any project for the detail.
       </p>
 
       <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>
@@ -876,7 +906,7 @@ function OffMarket() {
       <span className="label" style={{ color: C.goldDeep }}>Off-Market Land</span>
       <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Raw Dirt We Control.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 660 }}>
-        Engineered, entitled, or shovel-ready parcels across the Valley for builders and investors. The numbers live in the deal sheet - reach out and we send it.
+        Engineered, entitled, or shovel-ready parcels for builders and investors. The numbers live in the deal sheet - one text and we send it.
       </p>
 
       <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>

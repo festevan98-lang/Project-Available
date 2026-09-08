@@ -96,7 +96,8 @@ type LotStatus = 'available' | 'reserved' | 'sold';
 interface PortalLot { n: number; sqft: number; price: number; status: LotStatus; }
 const LOTS: PortalLot[] = LOTS_DATA.map(([n, sqft]) => ({
   n, sqft,
-  price: Math.round(sqft * PRICE_PSF * 100) / 100,
+  // Tracker pricing as of 2026-09-07: $11.75/sqft plus a flat $2,000 bump.
+  price: Math.round((sqft * PRICE_PSF + 2000) * 100) / 100,
   status: SOLD.has(n) ? 'sold' : RESERVED.has(n) ? 'reserved' : 'available',
 }));
 const AVAIL_COUNT = LOTS.filter((l) => l.status === 'available').length;

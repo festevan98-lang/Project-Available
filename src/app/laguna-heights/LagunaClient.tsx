@@ -167,6 +167,26 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
             )}
           </section>
 
+          {/* credibility - the comp across the street */}
+          <section style={{ padding: '28px 0 0' }}>
+            <div style={{ background: C.card, border: `2px solid ${C.goldDeep}`, borderRadius: 16, padding: 'clamp(20px, 4vw, 28px)' }}>
+              <span className="label" style={{ color: C.goldDeep }}>The Comp Across The Street</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
+                <span className="num" style={{ fontSize: 'clamp(2.6rem, 8vw, 4rem)', lineHeight: 0.94, color: C.ink }}>$187</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: C.inkSoft }}>Per Living Sqft - Appraised Value At Laguna Oaks</span>
+              </div>
+              <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 700, lineHeight: 1.55 }}>
+                Laguna Oaks sits directly across La Laguna Road - same corridor, same builder-grade
+                product, developed and engineered by the same team. New construction there is
+                appraising at $187 per living square foot. At that rate, a typical 1,600 sqft home
+                carries an appraised value near $299,000. Lots here start in the $60s.
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13.5, color: C.inkSoft, fontWeight: 600 }}>
+                {data ? `${Math.round(((data.counts.sold + data.counts.reserved) / data.counts.total) * 100)}% Of Laguna Heights Is Already Gone.` : 'Most Of The Community Is Already Gone.'} The Appraisals Nearby Are Not Waiting Either.
+              </p>
+            </div>
+          </section>
+
           {/* live status map - every lot drawn from tracker geometry, colored by live status */}
           {mapSrc && (
             <section style={{ padding: '28px 0 0' }}>

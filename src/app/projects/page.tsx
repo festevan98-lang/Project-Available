@@ -668,6 +668,11 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
                   Live Availability <ArrowUpRight size={13} strokeWidth={2.6} />
                 </a>
               )}
+              {p.listingHref && (
+                <a href={p.listingHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                  <ExternalLink size={13} strokeWidth={2.4} /> View The Listing
+                </a>
+              )}
               {p.mapsQuery && (
                 <a href={appleMaps(p.mapsQuery)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
                   <Navigation size={13} strokeWidth={2.4} /> View On Maps

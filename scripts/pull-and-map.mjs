@@ -27,7 +27,7 @@ const meta = await sharp(imgBuf).metadata();
 const W = 1600, H = Math.round(meta.height * (1600 / meta.width));
 const base64 = (await sharp(imgBuf).resize({ width: W }).jpeg({ quality: 80 }).toBuffer()).toString('base64');
 const GREEN = 'hsl(142,71%,45%)', RED = 'hsl(0,84%,60%)';
-const shapes = lots.filter(l => l.pts.length >= 2).map(l => {
+const shapes = lots.filter(l => l.pts.length >= 2 && l.n !== 141 && l.n !== 142).map(l => {
   const fill = l.status === 'available' ? GREEN : RED;
   const stroke = l.status === 'available' ? 'hsl(142,71%,30%)' : 'hsl(0,84%,42%)';
   if (l.shape === 'rectangle' || l.pts.length === 2) {

@@ -59,6 +59,8 @@ export interface Subdivision {
   mapsQuery?: string;
   /** Internal page with live availability, e.g. /laguna-heights. */
   liveHref?: string;
+  /** Public MLS/broker listing for the whole tract, when one exists. */
+  listingHref?: string;
   audience: Array<'retail' | 'pipeline'>;
   flags?: { hidden?: boolean; ownerConfirm?: boolean };
 }
@@ -121,18 +123,20 @@ export const SUBDIVISIONS: Subdivision[] = [
     name: 'Conway Duplex (private ref)', // internal only - never rendered
     publicName: 'Duplex Development, Conway Corridor',
     city: 'Mission, TX',
-    status: 'In Design',
+    status: 'Selling',
     stageIndex: 1,
     devType: 'Duplex',
+    // Listed publicly (MLS 487215), so the asking price is public for this one.
     stats: [
       { label: 'Lots', value: '48' },
-      { label: 'Units', value: '96' },
-      { label: 'Acres', value: '9.37' },
+      { label: 'Acres', value: '9.15' },
+      { label: 'Asking', value: '$1.35M' },
     ],
-    detail: 'A duplex development along the Conway corridor in Mission - 48 lots supporting 96 units. Engineering and design in progress with our team.',
-    features: ['48 duplex lots', '96 units', '9.37 acres', 'Engineering in design'],
-    locationNote: 'Conway Ave, Mission, TX',
-    mapsQuery: 'Conway Ave, Mission, TX',
+    detail: 'A 48-lot duplex site on N Conway Avenue in Mission, listed at $1,350,000. Feasibility and the preliminary civil layout are complete, city sewer is available, and the ETJ location means no rezoning is required. Short-term owner financing is available, and the site also works for flex, commercial, or single-family product.',
+    features: ['48 duplex lots - 96 units possible', 'ETJ - no rezoning required', 'City sewer available', 'Owner financing available', 'By H-E-B and Walmart at Mile 3'],
+    locationNote: 'N Conway Ave at Mile 3 (Buddy Owens Blvd), Mission, TX',
+    mapsQuery: 'N Conway Ave & Buddy Owens Blvd, Mission, TX',
+    listingHref: 'https://www.jaimeleegonzalez.com/search/listing/McAllenTX/487215/Mission/000-N-Conway-Avenue',
     audience: ['pipeline'],
   },
 ];

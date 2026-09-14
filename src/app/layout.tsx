@@ -20,7 +20,7 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   title: 'FEREST · Raw Land · Rooftops · Revenue',
   description:
-    'Own the lot. Build the home. Lots and build packages in the Rio Grande Valley, platted, entitled, and engineered in-house by FEREST with M2 Engineering.',
+    'Own the lot. Build the home. Lots and build packages in the Rio Grande Valley, developed by FEREST and led by a licensed civil engineer. Engineering by M2 Engineering, PLLC.',
 };
 
 export const viewport: Viewport = {

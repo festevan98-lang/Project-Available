@@ -15,14 +15,16 @@ export type ProjectStatus = 'Selling' | 'Ready' | 'In Design';
 export const STAGES = ['Feasibility', 'Plans', 'Construction', 'Sales'] as const;
 export type Stage = (typeof STAGES)[number];
 
-// Proof bar numbers - conservative floors derived from the published projects:
-// Subdivisions: LH, LO II, Augusta, Conway, Gems Creek, Angelica, Las Cumbres,
-//   Garden Path, One Place Pecan, LO I = 10.
-// Lots: 140 + 30 + 48 + 84 + 68 + 12 + ~80 + 14 = 470+ (floor).
-// Acres: 27 + 15.8 + 2.727 + 9.37 + 19.4 + 10 + 4.5 + 8.867 + 1.515 + 11.861 = 110+.
+// Proof bar numbers - conservative floors derived from the published projects.
+// Attribution: the engineering track record is Fernando's (P.E.), delivered
+// under M2 Engineering, PLLC - never claim FEREST engineered the recorded work.
+// Subdivisions: LH, Laguna Oaks (ph 1+2 together), Augusta, Conway, Gems Creek,
+//   Angelica, Las Cumbres, Garden Path, One Place Pecan = 9.
+// Lots: 140 + 104 + 30 + 48 + 84 + 68 + 12 + ~80 + 14 = 570+ (floor).
+// Acres: 27 + 27 + 2.727 + 9.15 + 19.4 + 10 + 4.5 + 8.867 + 1.515 = 110+.
 export const PROOF = {
-  subdivisions: '10',
-  lots: '470+',
+  subdivisions: '9',
+  lots: '570+',
   acres: '110+',
 } as const;
 
@@ -47,7 +49,9 @@ export interface Subdivision {
   stageIndex: number;
   /** Development type chip: Single-Family, Townhomes, Duplex, etc. */
   devType: string;
-  /** Up to three numeric chips shown in the pipeline row. No prices. */
+  /** One plain-English line under the name - what this is, third-grade simple. */
+  hook?: string;
+  /** Up to three numeric chips shown in the pipeline row. */
   stats: ProjectStat[];
   /** One-paragraph detail shown when the development row is expanded. */
   detail?: string;
@@ -59,8 +63,8 @@ export interface Subdivision {
   mapsQuery?: string;
   /** Internal page with live availability, e.g. /laguna-heights. */
   liveHref?: string;
-  /** Public MLS/broker listing for the whole tract, when one exists. */
-  listingHref?: string;
+  /** Our own dedicated project page, e.g. /conway. Never a third-party link. */
+  pageHref?: string;
   audience: Array<'retail' | 'pipeline'>;
   flags?: { hidden?: boolean; ownerConfirm?: boolean };
 }
@@ -73,32 +77,35 @@ export const SUBDIVISIONS: Subdivision[] = [
     status: 'Selling',
     stageIndex: 3,
     devType: 'Single-Family',
+    hook: 'Only 40 Lots Left. Streets Being Paved Right Now.',
     stats: [
       { label: 'Lots', value: '140' },
       { label: 'Acres', value: '27' },
     ],
-    detail: 'A fully platted single-family subdivision off La Laguna Road in Mission. Engineered, entitled, and filed in-house by our team. Lots are selling now, starting in the $60s.',
-    features: ['140 single-family lots', '27 acres', 'Platted and recorded', 'Lots selling now'],
+    detail: 'A new neighborhood in Mission with 140 home lots. The streets are being paved right now and lots are selling, starting in the $60s. FEREST also holds 5 lots here to build homes on for clients. Engineering by our founder under M2 Engineering, PLLC.',
+    features: ['140 single-family lots', '27 acres', 'Paving underway', 'FEREST holds 5 lots to build on'],
     locationNote: 'La Laguna Rd, Mission, TX',
     mapsQuery: 'Laguna Heights, Mission, TX',
     liveHref: '/laguna-heights',
     audience: ['retail', 'pipeline'],
   },
   {
-    id: 'laguna-oaks-2',
-    name: 'Laguna Oaks Phase II',
+    id: 'laguna-oaks',
+    name: 'Laguna Oaks',
     city: 'Mission, TX',
     status: 'Selling',
     stageIndex: 3,
     devType: 'Single-Family',
+    hook: 'Both Phases Built. We Still Hold Lots 69, 70, And 71.',
     stats: [
-      { label: 'FEREST Lots', value: '3' },
-      { label: 'Acres', value: '15.8' },
+      { label: 'Lots', value: '104' },
+      { label: 'Acres', value: '27' },
+      { label: 'FEREST-Held', value: '3' },
     ],
-    detail: 'Phase II of Laguna Oaks in Mission - single-family, engineered and platted by our team. FEREST owns lots 69, 70, and 71, available to buy outright or build to suit.',
-    features: ['Single-family', '15.8 acres', '6,000 sqft typical lots', 'FEREST owns lots 69-71'],
+    detail: 'A finished neighborhood in Mission - phases one and two were developed together: 104 home lots on about 27 acres off La Laguna Road. FEREST still holds lots 69, 70, and 71. Buy one outright, or we build your home on it. Engineering by our founder under M2 Engineering, PLLC.',
+    features: ['104 residential lots', 'About 27 acres', 'Both phases delivered', 'FEREST holds lots 69-71'],
     locationNote: '909 La Laguna Rd, Mission, TX',
-    mapsQuery: 'Laguna Oaks Phase II, Mission, TX',
+    mapsQuery: 'Laguna Oaks, Mission, TX',
     audience: ['retail', 'pipeline'],
   },
   {
@@ -108,11 +115,12 @@ export const SUBDIVISIONS: Subdivision[] = [
     status: 'In Design',
     stageIndex: 1,
     devType: 'Townhomes',
+    hook: '30 Townhomes On The Drawing Board.',
     stats: [
       { label: 'Lots', value: '30' },
       { label: 'Acres', value: '2.727' },
     ],
-    detail: 'A townhome development at FM-495 and Augusta Drive in Mission. Currently in design and entitlement, with our team engineering the plans in-house.',
+    detail: 'A townhome project at FM-495 and Augusta Drive in Mission. The plans and city approvals are being worked on right now, with engineering under M2 Engineering, PLLC.',
     features: ['30 townhome lots', '2.727 acres', 'In design & entitlement', 'FM-495 frontage'],
     locationNote: 'FM-495 & Augusta Dr, Mission, TX',
     mapsQuery: 'FM-495 & Augusta Dr, Mission, TX',
@@ -126,17 +134,18 @@ export const SUBDIVISIONS: Subdivision[] = [
     status: 'Selling',
     stageIndex: 1,
     devType: 'Duplex',
-    // Listed publicly (MLS 487215), so the asking price is public for this one.
+    hook: 'The Whole 48-Lot Site Is For Sale. $1.35M.',
+    // Listed publicly, so the asking price is public for this one.
     stats: [
       { label: 'Lots', value: '48' },
       { label: 'Acres', value: '9.15' },
       { label: 'Asking', value: '$1.35M' },
     ],
-    detail: 'A 48-lot duplex site on N Conway Avenue in Mission, listed at $1,350,000. Feasibility and the preliminary civil layout are complete, city sewer is available, and the ETJ location means no rezoning is required. Short-term owner financing is available, and the site also works for flex, commercial, or single-family product.',
+    detail: 'A 48-lot duplex site on N Conway Avenue in Mission, listed at $1,350,000. Feasibility and the concept layout are done, city sewer is available, and no rezoning is required. Short-term owner financing is available, and the site also works for flex, commercial, or single-family product.',
     features: ['48 duplex lots - 96 units possible', 'ETJ - no rezoning required', 'City sewer available', 'Owner financing available', 'By H-E-B and Walmart at Mile 3'],
     locationNote: 'N Conway Ave at Mile 3 (Buddy Owens Blvd), Mission, TX',
     mapsQuery: 'N Conway Ave & Buddy Owens Blvd, Mission, TX',
-    listingHref: 'https://www.jaimeleegonzalez.com/search/listing/McAllenTX/487215/Mission/000-N-Conway-Avenue',
+    pageHref: '/conway',
     audience: ['pipeline'],
   },
 ];
@@ -185,7 +194,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     ],
     mapsQuery: 'S Alton Blvd, Alton, TX',
     pageHref: '/gems-creek',
-    note: 'A Client Development Engineered By Our Team. Lots From $65,000 - Reserve With $1,000.',
+    note: 'A Client Development - Engineering By M2 Engineering. Lots From $65,000 - Reserve With $1,000.',
     noteCta: { label: 'Gems Creek Info', waText: 'Hey FEREST, Send Me Info On Gems Creek.' },
   },
   {
@@ -231,16 +240,6 @@ export const PORTFOLIO: PortfolioProject[] = [
       { label: 'Acres', value: '1.515' },
     ],
     mapsQuery: 'One Place Pecan Subdivision, McAllen, TX',
-  },
-  {
-    id: 'laguna-oaks-1',
-    name: 'Laguna Oaks Phase I',
-    city: 'Mission, TX',
-    stats: [
-      { label: 'Acres', value: '11.861' },
-      { label: 'Type', value: 'Single-Family' },
-    ],
-    mapsQuery: 'Laguna Oaks Subdivision, Mission, TX',
   },
 ];
 
@@ -298,7 +297,7 @@ export interface MapParcel {
 
 export const MAP_PARCELS: MapParcel[] = [
   { id: 'laguna-heights', name: 'Laguna Heights', lat: 26.1575, lng: -98.2885, kind: 'developed' },
-  { id: 'laguna-oaks', name: 'Laguna Oaks I & II', lat: 26.1605, lng: -98.2835, kind: 'developed' },
+  { id: 'laguna-oaks', name: 'Laguna Oaks', lat: 26.1605, lng: -98.2835, kind: 'developed' },
   { id: 'garden-path', name: 'Garden Path', lat: 26.2015, lng: -98.2805, kind: 'developed' },
   { id: 'las-cumbres', name: 'Las Cumbres Terrace', lat: 26.1925, lng: -98.3125, kind: 'developed' },
   { id: 'augusta', name: 'Augusta Townhomes', lat: 26.2360, lng: -98.2915, kind: 'developed' },

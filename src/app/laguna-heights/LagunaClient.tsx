@@ -143,7 +143,7 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
               <span style={{ background: `linear-gradient(180deg, ${C.goldHi}, ${C.goldDeep})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Heights.</span>
             </h1>
             <p style={{ marginTop: 14, fontSize: 16, fontWeight: 500, color: C.inkSoft, maxWidth: 620, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MapPin size={15} strokeWidth={2.2} /> Mission, TX - Platted, Entitled, And Engineered In-House By FEREST.
+              <MapPin size={15} strokeWidth={2.2} /> Mission, TX - Developed And Sold By FEREST. Engineering By M2 Engineering, PLLC (TBPELS F-19545).
             </p>
 
             {data ? (
@@ -177,7 +177,7 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
               </div>
               <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 700, lineHeight: 1.55 }}>
                 Laguna Oaks sits directly across La Laguna Road - same corridor, same builder-grade
-                product, developed and engineered by the same team. New construction there is
+                product, from the same people. New construction there is
                 appraising at $187 per living square foot. At that rate, a typical 1,600 sqft home
                 carries an appraised value near $299,000. Lots here start in the $60s.
               </p>
@@ -297,7 +297,7 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
               {[
                 { icon: Landmark, title: 'Buy The Lot', body: 'Take any open lot flat and hold it or build later. Starting in the $60s.', cta: 'Ask About A Lot', msg: 'Hey FEREST, I Want To Buy A Lot At Laguna Heights.' },
                 { icon: Home, title: 'We Build Your Home', body: 'Pick the lot and we build on it - our model or your floor plan, handled end to end.', cta: 'Ask About Building', msg: 'Hey FEREST, I Want You To Build A Home On A Laguna Heights Lot.' },
-                { icon: KeyRound, title: 'FEREST-Held Lots', body: 'We keep a few of our own lots here. Ask what we would sell or build on for you.', cta: 'Ask What We Hold', msg: 'Hey FEREST, Which Laguna Heights Lots Do You Still Hold?' },
+                { icon: KeyRound, title: 'FEREST-Held Lots', body: 'We hold 5 lots here to build homes on for clients. Ask which ones are open.', cta: 'Ask What We Hold', msg: 'Hey FEREST, Which Laguna Heights Lots Do You Still Hold?' },
               ].map((w) => (
                 <div key={w.title} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column' }}>
                   <w.icon size={22} color={C.goldDeep} strokeWidth={2.2} />

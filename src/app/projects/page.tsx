@@ -73,15 +73,16 @@ interface InventoryLot {
   city: string;
   lotNumber: string;
   sqft: number;
+  /** Set for a grouped card, e.g. "5 Lots" - renders instead of "Lot N". */
+  group?: string;
   street?: string;
   mapsQuery?: string;
 }
 const INVENTORY_LOTS: InventoryLot[] = [
-  { id: 'lo-69', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '69', sqft: 6000, street: '909 La Laguna Rd', mapsQuery: '909 La Laguna Rd, Mission, TX' },
-  { id: 'lo-70', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '70', sqft: 6000, street: 'La Laguna Rd', mapsQuery: 'Laguna Oaks Phase II, Mission, TX' },
-  { id: 'lo-71', project: 'Laguna Oaks Phase II', city: 'Mission, TX', lotNumber: '71', sqft: 6000, street: 'La Laguna Rd', mapsQuery: 'Laguna Oaks Phase II, Mission, TX' },
-  { id: 'lh-38', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '38', sqft: 5000, street: 'Sundown Dr', mapsQuery: 'Laguna Heights, Mission, TX' },
-  { id: 'lh-39', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '39', sqft: 5000, street: 'Sundown Dr', mapsQuery: 'Laguna Heights, Mission, TX' },
+  { id: 'lo-69', project: 'Laguna Oaks', city: 'Mission, TX', lotNumber: '69', sqft: 6000, street: '909 La Laguna Rd', mapsQuery: '909 La Laguna Rd, Mission, TX' },
+  { id: 'lo-70', project: 'Laguna Oaks', city: 'Mission, TX', lotNumber: '70', sqft: 6000, street: 'La Laguna Rd', mapsQuery: 'Laguna Oaks, Mission, TX' },
+  { id: 'lo-71', project: 'Laguna Oaks', city: 'Mission, TX', lotNumber: '71', sqft: 6000, street: 'La Laguna Rd', mapsQuery: 'Laguna Oaks, Mission, TX' },
+  { id: 'lh-held', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '', sqft: 0, group: '5 Lots', street: 'Ask Us Which Ones', mapsQuery: 'Laguna Heights, Mission, TX' },
 ];
 
 // Laguna Heights fallback snapshot - tracker state 2026-09-14, minus lots
@@ -230,6 +231,7 @@ export default function App() {
 
       <main>
         <Hero />
+        <PathChooser />
         <Pipeline />
         <OffMarket />
         <Portfolio />
@@ -287,7 +289,7 @@ function Hero() {
         {/* proof bar - the receipts, up front */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-7">
           {[
-            { big: PROOF.subdivisions, sub: 'Subdivisions Engineered' },
+            { big: PROOF.subdivisions, sub: 'Subdivisions Our Founder Engineered' },
             { big: PROOF.lots, sub: 'Lots Designed Or Platted' },
             { big: PROOF.acres, sub: 'Acres Developed' },
             { big: String(lotsLeft), sub: 'Lots Left At Laguna Heights' },
@@ -333,8 +335,8 @@ function Homes({ showPlat, setShowPlat }: { showPlat: boolean; setShowPlat: (v: 
   const sqftMin = live ? Math.min(...lots.map((l) => l.sqft)) : SQFT_MIN;
   const sqftMax = live ? Math.max(...lots.map((l) => l.sqft)) : SQFT_MAX;
   return (
-    <Accordion id="homes" eyebrow="FEREST Homes" title="Buy A Lot Or Build To Suit"
-      subtitle="Vacant lots FEREST owns. Take the lot as-is or build our model. Pricing by request - tap to view.">
+    <Accordion id="homes" eyebrow="FEREST Homes" title="Want A Home? Start Here"
+      subtitle="Lots we own, and the home we can build on them. Tap to open.">
       {/* one model peek - not repeated per card */}
       <div className="grid grid-cols-2 gap-3">
         {MODEL_INT.map((src) => (
@@ -438,19 +440,25 @@ function FhaCalculator() {
 
 /* ------------------------------------------------------------------ owned lot card */
 function OwnedLotCard({ lot }: { lot: InventoryLot }) {
-  const reachHref = wa(`Hey FEREST, I'm Interested In Lot ${lot.lotNumber} At ${lot.project} - Buy Or Build To Suit. What's The Pricing?`);
+  const reachHref = lot.group
+    ? wa(`Hey FEREST, Which ${lot.group} Do You Hold At ${lot.project}? I Want You To Build For Me.`)
+    : wa(`Hey FEREST, I'm Interested In Lot ${lot.lotNumber} At ${lot.project} - Buy Or Build To Suit. What's The Pricing?`);
   return (
     <article style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 18, display: 'flex', flexDirection: 'column' }}>
       <div className="flex items-center justify-between gap-2">
         <span className="label" style={{ background: C.gold, color: '#1A160A', padding: '4px 10px', borderRadius: 999, fontSize: 9 }}>FEREST Owned</span>
-        <span className="label" style={{ background: C.paperDeep, color: C.inkSoft, padding: '4px 10px', borderRadius: 999, fontSize: 9 }}>Vacant</span>
+        <span className="label" style={{ background: C.paperDeep, color: C.inkSoft, padding: '4px 10px', borderRadius: 999, fontSize: 9 }}>
+          {lot.group ? 'We Build For Clients' : 'Vacant'}
+        </span>
       </div>
       <div style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft, marginTop: 12 }}>{lot.project} - {lot.city}</div>
       <div className="display flex items-baseline gap-2" style={{ fontSize: 30, color: C.ink, marginTop: 2 }}>
-        Lot {lot.lotNumber}
-        <span style={{ fontFamily: 'var(--font-oswald)', fontSize: 12, fontWeight: 600, color: C.inkSoft, textTransform: 'none', letterSpacing: 0 }}>
-          {lot.sqft.toLocaleString()} Sqft
-        </span>
+        {lot.group ? lot.group : `Lot ${lot.lotNumber}`}
+        {lot.sqft > 0 && (
+          <span style={{ fontFamily: 'var(--font-oswald)', fontSize: 12, fontWeight: 600, color: C.inkSoft, textTransform: 'none', letterSpacing: 0 }}>
+            {lot.sqft.toLocaleString()} Sqft
+          </span>
+        )}
       </div>
       {lot.street && (
         <div className="flex items-center gap-1.5" style={{ fontSize: 12, color: C.inkSoft, fontWeight: 500, marginTop: 4 }}>
@@ -593,6 +601,35 @@ function PlatDirectory({ lots = LOTS, live = false }: { lots?: PortalLot[]; live
   );
 }
 
+/* ------------------------------------------------------------------ path chooser */
+function PathChooser() {
+  const paths = [
+    { icon: Compass, title: 'I Want Land Or A Deal', body: 'Lots, acreage, and whole projects for builders and investors.', href: '#developments' },
+    { icon: Hammer, title: 'I Want A Home Or A Lot', body: 'Buy a lot today, or we build the house for you.', href: '#homes' },
+    { icon: MapPin, title: 'Show Me What You Have Done', body: 'Finished projects on a map, with the receipts.', href: '#portfolio' },
+  ];
+  return (
+    <section style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 20px 8px' }}>
+      <span className="label" style={{ color: C.goldDeep }}>Start Here</span>
+      <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', color: C.ink, marginTop: 8 }}>What Are You Looking For?</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+        {paths.map((p) => (
+          <a key={p.title} href={p.href}
+            style={{ display: 'flex', flexDirection: 'column', gap: 10, background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: '22px 24px', textDecoration: 'none', minHeight: 44 }}
+            className="row-link">
+            <p.icon size={24} color={C.goldDeep} strokeWidth={2.2} />
+            <span style={{ fontWeight: 700, fontSize: 21, color: C.ink }}>{p.title}</span>
+            <span style={{ fontWeight: 500, fontSize: 15, color: C.inkSoft, lineHeight: 1.45 }}>{p.body}</span>
+            <span className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, marginTop: 'auto' }}>
+              Take Me There <ArrowRight size={13} strokeWidth={2.6} />
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ------------------------------------------------------------------ developments (lifecycle) */
 function StageBar({ index }: { index: number }) {
   return (
@@ -632,6 +669,9 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
                 <ChevronDown size={18} strokeWidth={2.6} color={C.goldDeep} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
               )}
             </div>
+            {p.hook && (
+              <div style={{ fontSize: 15, fontWeight: 600, color: C.goldDeep, marginTop: 4 }}>{p.hook}</div>
+            )}
             <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
               <MapPin size={13} strokeWidth={2} /> {p.city}
             </div>
@@ -668,9 +708,9 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
                   Live Availability <ArrowUpRight size={13} strokeWidth={2.6} />
                 </a>
               )}
-              {p.listingHref && (
-                <a href={p.listingHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
-                  <ExternalLink size={13} strokeWidth={2.4} /> View The Listing
+              {p.pageHref && (
+                <a href={p.pageHref} className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep, textDecoration: 'none' }}>
+                  Project Page <ArrowUpRight size={13} strokeWidth={2.6} />
                 </a>
               )}
               {p.mapsQuery && (
@@ -692,10 +732,10 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
 function Pipeline() {
   return (
     <section id="developments" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
-      <span className="label" style={{ color: C.goldDeep }}>Subdivision Pipeline</span>
-      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Developments We Run.</h2>
+      <span className="label" style={{ color: C.goldDeep }}>Our Projects</span>
+      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>What We're Building Right Now.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        Feasibility. Plans. Construction. Sales. All in-house. Tap any project for the detail.
+        Tap any project and it opens up with the whole story. Led by a licensed civil engineer.
       </p>
 
       <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>
@@ -715,7 +755,7 @@ function Pipeline() {
 function DesignBuild() {
   return (
     <Accordion id="build" eyebrow="Design + Build" title="Built By FEREST"
-      subtitle="Homes delivered and commercial spaces we have designed and built. Tap to view.">
+      subtitle="Real homes and businesses we built. Tap to see them.">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {CONSTRUCTION.map((b) => {
           const sold = b.status === 'Sold';
@@ -836,10 +876,10 @@ function ParcelMap() {
 function Portfolio() {
   return (
     <section id="portfolio" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 20px 8px' }}>
-      <span className="label" style={{ color: C.goldDeep }}>Platted &amp; Engineered By Our Team</span>
-      <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: C.ink, marginTop: 8 }}>The Track Record.</h2>
+      <span className="label" style={{ color: C.goldDeep }}>Proof - With M2 Engineering</span>
+      <h2 className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: C.ink, marginTop: 8 }}>We Have Done This Before.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 640 }}>
-        Subdivisions our team designed, platted, and engineered across the Valley.
+        Subdivisions engineered by our founder under M2 Engineering, PLLC, all across the Valley.
       </p>
       <div className="inline-flex items-center gap-2.5 mt-4" style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 999, padding: '8px 16px' }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft }}>Engineered By</span>
@@ -914,7 +954,7 @@ function OffMarket() {
       <span className="label" style={{ color: C.goldDeep }}>Off-Market Land</span>
       <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', color: C.ink, marginTop: 8 }}>Raw Dirt We Control.</h2>
       <p style={{ marginTop: 12, fontSize: 15, color: C.inkSoft, fontWeight: 500, maxWidth: 660 }}>
-        Engineered, entitled, or shovel-ready parcels for builders and investors. The numbers live in the deal sheet - one text and we send it.
+        Land deals you will not find online. One text and we send you the list.
       </p>
 
       <div style={{ marginTop: 28, border: `2px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', background: C.card }}>

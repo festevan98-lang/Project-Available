@@ -39,6 +39,12 @@ interface RawLot {
   points?: { x: number; y: number }[];
 }
 
+// Owner-confirmed (2026-09-14): lots 141 and 142 no longer exist on the plat
+// (absorbed into the detention side). The tracker still carries them as
+// "sold"; drop them from every public count until it catches up - this
+// filter becomes a harmless no-op once they are deleted there.
+const REMOVED_LOTS = new Set([141, 142]);
+
 function normalizeStatus(s: string | undefined): LhStatus {
   const v = (s || '').toLowerCase();
   if (v === 'available') return 'available';
@@ -56,7 +62,7 @@ export function normalizeLots(raw: RawLot[]): LhLot[] {
       shape: (l.shapeType === 'rectangle' ? 'rectangle' : 'polygon') as 'polygon' | 'rectangle',
       points: l.points,
     }))
-    .filter((l) => Number.isFinite(l.n) && l.n > 0)
+    .filter((l) => Number.isFinite(l.n) && l.n > 0 && !REMOVED_LOTS.has(l.n))
     .sort((a, b) => a.n - b.n);
 }
 

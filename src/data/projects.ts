@@ -18,7 +18,7 @@ export type Stage = (typeof STAGES)[number];
 // Proof bar numbers - conservative floors derived from the published projects:
 // Subdivisions: LH, LO II, Augusta, Conway, Gems Creek, Angelica, Las Cumbres,
 //   Garden Path, One Place Pecan, LO I = 10.
-// Lots: 141 + 30 + 48 + 84 + 68 + 12 + ~80 + 14 = 470+ (floor).
+// Lots: 140 + 30 + 48 + 84 + 68 + 12 + ~80 + 14 = 470+ (floor).
 // Acres: 27 + 15.8 + 2.727 + 9.37 + 19.4 + 10 + 4.5 + 8.867 + 1.515 + 11.861 = 110+.
 export const PROOF = {
   subdivisions: '10',
@@ -72,11 +72,11 @@ export const SUBDIVISIONS: Subdivision[] = [
     stageIndex: 3,
     devType: 'Single-Family',
     stats: [
-      { label: 'Lots', value: '141' },
+      { label: 'Lots', value: '140' },
       { label: 'Acres', value: '27' },
     ],
     detail: 'A fully platted single-family subdivision off La Laguna Road in Mission. Engineered, entitled, and filed in-house by our team. Lots are selling now, starting in the $60s.',
-    features: ['141 single-family lots', '27 acres', 'Platted and recorded', 'Lots selling now'],
+    features: ['140 single-family lots', '27 acres', 'Platted and recorded', 'Lots selling now'],
     locationNote: 'La Laguna Rd, Mission, TX',
     mapsQuery: 'Laguna Heights, Mission, TX',
     liveHref: '/laguna-heights',

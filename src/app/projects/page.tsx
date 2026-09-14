@@ -267,8 +267,6 @@ function Header() {
 
 /* ------------------------------------------------------------------ Hero (proof-first) */
 function Hero() {
-  const live = useLiveLots();
-  const lotsLeft = live?.available ?? AVAIL_COUNT;
   return (
     <section id="top" className="fade" style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0 }} aria-hidden>
@@ -289,10 +287,10 @@ function Hero() {
         {/* proof bar - the receipts, up front */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-7">
           {[
-            { big: PROOF.subdivisions, sub: 'Subdivisions Our Founder Engineered' },
             { big: PROOF.lots, sub: 'Lots Designed Or Platted' },
             { big: PROOF.acres, sub: 'Acres Developed' },
-            { big: String(lotsLeft), sub: 'Lots Left At Laguna Heights' },
+            { big: '$187', sub: 'Per Living Sqft Appraised At Laguna Oaks' },
+            { big: '96', sub: 'Duplex Units Possible On One Conway Site' },
           ].map((t) => (
             <div key={t.sub} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 14, padding: '14px 16px' }}>
               <div className="num" style={{ fontSize: 'clamp(1.9rem, 5vw, 2.6rem)', color: C.ink, lineHeight: 0.96 }}>{t.big}</div>

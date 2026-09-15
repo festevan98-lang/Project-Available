@@ -76,13 +76,24 @@ function Btn({ href, children, kind = 'primary', full }: {
   );
 }
 
-/** Partner logo tile - hides itself until the file exists in /public/brand. */
+/**
+ * Partner logo tile. Hidden until the file is PROVEN to load - probing with
+ * a JS Image avoids the SSR pitfall where a 404's error event fires before
+ * hydration and a broken-image icon gets stuck on screen.
+ */
 function PartnerLogo({ src, alt }: { src: string; alt: string }) {
-  const [ok, setOk] = useState(true);
+  const [ok, setOk] = useState(false);
+  React.useEffect(() => {
+    let on = true;
+    const probe = new Image();
+    probe.onload = () => { if (on && probe.naturalWidth > 0) setOk(true); };
+    probe.src = src;
+    return () => { on = false; };
+  }, [src]);
   if (!ok) return null;
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} onError={() => setOk(false)}
+    <img src={src} alt={alt}
       style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 12, border: `2px solid ${C.border}`, background: '#0B0B0B', display: 'block' }} />
   );
 }

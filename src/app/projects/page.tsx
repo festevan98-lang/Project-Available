@@ -690,6 +690,12 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
         <div className="fade" style={{ padding: '0 20px 20px' }}>
           <div style={{ borderTop: `2px solid ${C.border}`, paddingTop: 16 }}>
             <p style={{ fontSize: 15, color: C.ink, fontWeight: 500, maxWidth: 700, lineHeight: 1.5 }}>{p.detail}</p>
+            {p.platImg && (
+              <div style={{ marginTop: 14, borderRadius: 12, overflow: 'hidden', border: `2px solid ${C.border}`, background: '#fff', padding: 6, maxWidth: 720 }}>
+                <SmartImg src={p.platImg} alt={`${publicNameOf(p)} plat`} label="Plat"
+                  style={{ width: '100%', display: 'block', borderRadius: 8 }} />
+              </div>
+            )}
             {p.features && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {p.features.map((f) => (
@@ -894,6 +900,12 @@ function Portfolio() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-7">
         {PORTFOLIO.map((p) => (
           <article key={p.id} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
+            {p.platImg && (
+              <div style={{ borderRadius: 12, overflow: 'hidden', border: `2px solid ${C.border}`, background: '#fff', marginBottom: 14 }}>
+                <SmartImg src={p.platImg} alt={`${p.name} plat`} label="Plat"
+                  style={{ width: '100%', height: 150, objectFit: 'cover', display: 'block' }} />
+              </div>
+            )}
             <div className="flex items-start justify-between gap-3">
               <div>
                 {p.tag && (

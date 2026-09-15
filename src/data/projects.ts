@@ -65,6 +65,8 @@ export interface Subdivision {
   liveHref?: string;
   /** Our own dedicated project page, e.g. /conway. Never a third-party link. */
   pageHref?: string;
+  /** Plat or layout image shown in the expanded panel. */
+  platImg?: string;
   audience: Array<'retail' | 'pipeline'>;
   flags?: { hidden?: boolean; ownerConfirm?: boolean };
 }
@@ -87,6 +89,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     locationNote: 'La Laguna Rd, Mission, TX',
     mapsQuery: 'Laguna Heights, Mission, TX',
     liveHref: '/laguna-heights',
+    platImg: '/plats/laguna-heights-plat.png',
     audience: ['retail', 'pipeline'],
   },
   {
@@ -106,6 +109,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     features: ['104 residential lots', 'About 27 acres', 'Both phases delivered', 'FEREST holds lots 69-71'],
     locationNote: '909 La Laguna Rd, Mission, TX',
     mapsQuery: 'Laguna Oaks, Mission, TX',
+    platImg: '/plats/laguna-oaks-plat.png',
     audience: ['retail', 'pipeline'],
   },
   {
@@ -124,6 +128,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     features: ['30 townhome lots', '2.727 acres', 'In design & entitlement', 'FM-495 frontage'],
     locationNote: 'FM-495 & Augusta Dr, Mission, TX',
     mapsQuery: 'FM-495 & Augusta Dr, Mission, TX',
+    platImg: '/plats/augusta-plat.png',
     audience: ['pipeline'],
   },
   {
@@ -146,6 +151,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     locationNote: 'N Conway Ave at Mile 3 (Buddy Owens Blvd), Mission, TX',
     mapsQuery: 'N Conway Ave & Buddy Owens Blvd, Mission, TX',
     pageHref: '/conway',
+    platImg: '/plats/conway-layout.png',
     audience: ['pipeline'],
   },
 ];
@@ -175,6 +181,8 @@ export interface PortfolioProject {
   mapsQuery?: string;
   /** Internal info page, e.g. /gems-creek. */
   pageHref?: string;
+  /** Plat image shown at the top of the card. */
+  platImg?: string;
   /** Optional availability note (e.g. a built unit for rent or sale). */
   note?: string;
   /** Optional WhatsApp CTA tied to the note. */
@@ -194,6 +202,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     ],
     mapsQuery: 'S Alton Blvd, Alton, TX',
     pageHref: '/gems-creek',
+    platImg: '/plats/gems-creek.png',
     note: 'A Client Development - Engineering By M2 Engineering. Lots From $65,000 - Reserve With $1,000.',
     noteCta: { label: 'Gems Creek Info', waText: 'Hey FEREST, Send Me Info On Gems Creek.' },
   },
@@ -218,6 +227,7 @@ export const PORTFOLIO: PortfolioProject[] = [
       { label: 'Acres', value: '4.5' },
     ],
     mapsQuery: 'Las Cumbres Terrace Subdivision, Mission, TX',
+    platImg: '/plats/las-cumbres-plat.png',
     note: 'Lots Sold Out. A Fourplex Is Available To Rent Or Buy.',
     noteCta: { label: 'Fourplex - Rent Or Buy', waText: 'Hi FEREST, Tell Me About The Las Cumbres Fourplex (Rent Or Buy).' },
   },
@@ -230,6 +240,7 @@ export const PORTFOLIO: PortfolioProject[] = [
       { label: 'Acres', value: '8.867' },
     ],
     mapsQuery: 'Garden Path Subdivision, Mission, TX',
+    platImg: '/plats/garden-path-plat.png',
   },
   {
     id: 'one-place-pecan',
@@ -240,6 +251,7 @@ export const PORTFOLIO: PortfolioProject[] = [
       { label: 'Acres', value: '1.515' },
     ],
     mapsQuery: 'One Place Pecan Subdivision, McAllen, TX',
+    platImg: '/plats/one-place-pecan-plat.png',
   },
 ];
 

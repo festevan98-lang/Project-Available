@@ -123,7 +123,7 @@ export default function GemsClient() {
         .gc .fade { animation: gcfade .25s ease; }
         @keyframes gcfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
         .gc .tile:hover:not(:disabled) { transform: translateY(-1px); }
-        @media (max-width: 640px) { .gc .pad-bar { padding-bottom: 84px; } }
+        @media (max-width: 640px) { .gc .pad-bar { padding-bottom: 84px; } .gc .pdiv { display: none; } }
       `}</style>
 
       <div className="gc grid-bg pad-bar">
@@ -136,7 +136,7 @@ export default function GemsClient() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={BRAND.wordmark} alt="FEREST" style={{ height: 15, width: 'auto' }} />
             </a>
-            <div style={{ display: 'flex', gap: 10 }} className="hidden sm:flex">
+            <div className="hidden sm:flex items-center gap-2.5">
               <Btn kind="ghost" href={WA_GEMS}><MessageCircle size={15} strokeWidth={2.4} /> Text Us</Btn>
               <Btn href={CALENDLY}><Phone size={14} strokeWidth={2.6} /> Book A Call</Btn>
             </div>
@@ -172,7 +172,7 @@ export default function GemsClient() {
                   <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Elite Development</span>
                 </div>
               </div>
-              <span aria-hidden style={{ width: 1, height: 34, background: C.border }} />
+              <span aria-hidden className="pdiv" style={{ width: 1, height: 34, background: C.border }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <PartnerLogo src="/brand/gems-logo.png" alt="GEMS Real Estate Group" />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -180,7 +180,7 @@ export default function GemsClient() {
                   <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Gema Hernandez, Realtor - GEMS Real Estate Group</span>
                 </div>
               </div>
-              <span aria-hidden style={{ width: 1, height: 34, background: C.border }} />
+              <span aria-hidden className="pdiv" style={{ width: 1, height: 34, background: C.border }} />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Engineering By</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 2 }}>

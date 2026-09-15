@@ -117,7 +117,7 @@ export default function LagunaClient({ initial }: { initial: LhData | null }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={BRAND.wordmark} alt="FEREST" style={{ height: 15, width: 'auto' }} />
             </a>
-            <div style={{ display: 'flex', gap: 10 }} className="hidden sm:flex">
+            <div className="hidden sm:flex items-center gap-2.5">
               <Btn kind="ghost" href={wa('Hey FEREST, I Saw The Laguna Heights Availability Page.')}>
                 <MessageCircle size={15} strokeWidth={2.4} /> Text Us
               </Btn>

@@ -84,7 +84,7 @@ export default function ConwayClient() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={BRAND.wordmark} alt="FEREST" style={{ height: 15, width: 'auto' }} />
             </a>
-            <div style={{ display: 'flex', gap: 10 }} className="hidden sm:flex">
+            <div className="hidden sm:flex items-center gap-2.5">
               <Btn kind="ghost" href={WA_CONWAY}><MessageCircle size={15} strokeWidth={2.4} /> Text Us</Btn>
               <Btn href={CALENDLY}><Phone size={14} strokeWidth={2.6} /> Book A Call</Btn>
             </div>

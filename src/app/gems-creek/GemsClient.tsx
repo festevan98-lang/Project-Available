@@ -24,13 +24,14 @@ const WA_GEMS = wa('Hey FEREST, Send Me Info On Gems Creek.');
 const BRAND = { mark: '/brand/ferest-mark.webp', wordmark: '/brand/ferest-wordmark.webp', m2: '/brand/m2-logo.webp' };
 const PLAT_IMG = '/plats/gems-creek.png';
 
-/* ---- availability, carried from the flyer (2026-09-15) ---- */
+/* ---- availability, carried from the flyer (2026-09-15, owner-verified: 39 taken) ---- */
 // Residential lots are 4-87 (84 lots). Commercial pads are Lots 1-3.
+// Taken per flyer stamps: 4-7, 9-10, 12-28, 40-51, 52-55 = 39.
 const RESERVED = new Set<number>([
-  4, 5, 6, 9, 10,
+  4, 5, 6, 7, 9, 10,
   12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
-  40, 41, 42, 43, 44, 45, 46,
-  52, 53, 54, 55, 56,
+  40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
+  52, 53, 54, 55,
 ]);
 const RES_LOTS: number[] = Array.from({ length: 84 }, (_, i) => i + 4);
 const AVAIL = RES_LOTS.filter((n) => !RESERVED.has(n));

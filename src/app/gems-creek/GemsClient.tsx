@@ -2,15 +2,17 @@
 
 /*
   Gems Creek - shareable info page for a client development.
-  Development by Elite Development; engineering by the FEREST / M2 team.
-  Facts carried from the official Gems Creek flyer. No live tracker yet -
-  availability is confirmed by hand when people reach out.
+  Development by Elite Development; listed with Gema Hernandez (GEMS Real
+  Estate Group); engineering by M2 Engineering. All buyer contact goes
+  through FEREST's number.
+  Lot availability is carried from the official Gems Creek flyer
+  (updated 2026-09-15) - update RESERVED below when a new flyer drops.
   Share: projects.ferest.dev/gems-creek
 */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  MapPin, Phone, MessageCircle, ArrowRight, Landmark, Store, CalendarCheck, Hammer,
+  MapPin, Phone, MessageCircle, ArrowRight, Landmark, Store, CalendarCheck, Hammer, X,
 } from 'lucide-react';
 
 const CALENDLY = 'https://calendly.com/ferest-info/30min';
@@ -20,8 +22,23 @@ const wa = (text: string) => `${WA_BASE}?text=${encodeURIComponent(text)}`;
 const WA_GEMS = wa('Hey FEREST, Send Me Info On Gems Creek.');
 
 const BRAND = { mark: '/brand/ferest-mark.webp', wordmark: '/brand/ferest-wordmark.webp', m2: '/brand/m2-logo.webp' };
-// Drop the flyer or plat image at public/plats/gems-creek.png and it appears here.
 const PLAT_IMG = '/plats/gems-creek.png';
+
+/* ---- availability, carried from the flyer (2026-09-15) ---- */
+// Residential lots are 4-87 (84 lots). Commercial pads are Lots 1-3.
+const RESERVED = new Set<number>([
+  4, 5, 6, 9, 10,
+  12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+  40, 41, 42, 43, 44, 45, 46,
+  52, 53, 54, 55, 56,
+]);
+const RES_LOTS: number[] = Array.from({ length: 84 }, (_, i) => i + 4);
+const AVAIL = RES_LOTS.filter((n) => !RESERVED.has(n));
+const COMMERCIAL = [
+  { n: 1, acres: '1.000', sqft: '43,560' },
+  { n: 2, acres: '0.997', sqft: '43,428' },
+  { n: 3, acres: '1.302', sqft: '56,698' },
+];
 
 const C = {
   paper: '#F4F1E8',
@@ -61,6 +78,13 @@ function Btn({ href, children, kind = 'primary', full }: {
 
 export default function GemsClient() {
   const [platOk, setPlatOk] = useState(true);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [availOnly, setAvailOnly] = useState(true);
+
+  const shown = useMemo(
+    () => (availOnly ? RES_LOTS.filter((n) => !RESERVED.has(n)) : RES_LOTS),
+    [availOnly],
+  );
 
   return (
     <div style={{ background: C.paper, minHeight: '100vh', color: C.ink }}>
@@ -74,6 +98,9 @@ export default function GemsClient() {
           linear-gradient(rgba(120,125,110,0.10) 1px, transparent 1px),
           linear-gradient(90deg, rgba(120,125,110,0.10) 1px, transparent 1px);
           background-size: 26px 26px; }
+        .gc .fade { animation: gcfade .25s ease; }
+        @keyframes gcfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        .gc .tile:hover:not(:disabled) { transform: translateY(-1px); }
         @media (max-width: 640px) { .gc .pad-bar { padding-bottom: 84px; } }
       `}</style>
 
@@ -102,6 +129,9 @@ export default function GemsClient() {
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.card, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.inkSoft }}>
                 <Hammer size={12} strokeWidth={2.4} /> Under Construction Now
               </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.card, border: `2px solid ${C.border}`, borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: C.inkSoft }}>
+                Availability As Of Sept 15
+              </span>
             </div>
             <h1 className="display" style={{ fontSize: 'clamp(3rem, 9vw, 5.6rem)', marginTop: 12 }}>
               <span style={{ color: C.ink }}>Gems</span>{' '}
@@ -111,12 +141,12 @@ export default function GemsClient() {
               <MapPin size={15} strokeWidth={2.2} /> City Of Alton, TX - 19.40 Acres Off S. Alton Blvd (SH 107). Streets Going In Now.
             </p>
 
-            {/* stat tiles */}
+            {/* live-style counts */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 24 }}>
               {[
-                { top: 'Single-Family', big: '84', sub: 'Residential Lots' },
-                { top: 'Commercial', big: '3', sub: 'Pad Sites Up To 1.3 Ac' },
-                { top: 'Lots Starting At', big: '$65k', sub: 'Reserve With $1,000' },
+                { top: 'Available Now', big: String(AVAIL.length), sub: 'Residential Lots Open' },
+                { top: 'Already Taken', big: String(RESERVED.size), sub: 'Reserved Or Sold' },
+                { top: 'Commercial', big: '3', sub: 'Pads On S. Alton Blvd' },
               ].map((t) => (
                 <div key={t.top} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: '16px 18px' }}>
                   <div className="label" style={{ color: C.goldDeep, fontSize: 10 }}>{t.top}</div>
@@ -131,7 +161,7 @@ export default function GemsClient() {
               <div>
                 <div className="label" style={{ color: C.goldDeep, fontSize: 10 }}>Early Pricing - It Ends When The Streets Are Paved</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginTop: 4 }}>
-                  Hold Any Open Lot Today With A $1,000 Reservation.
+                  Lots From $65,000. Hold Any Open Lot With A $1,000 Reservation.
                 </div>
               </div>
               <Btn kind="wa" href={wa('Hey FEREST, I Want To Reserve A Lot At Gems Creek.')}>
@@ -140,9 +170,80 @@ export default function GemsClient() {
             </div>
           </section>
 
-          {/* plat image (appears once the file is dropped in public/plats) */}
+          {/* lot directory */}
+          <section style={{ padding: '32px 0 0' }}>
+            <span className="label" style={{ color: C.goldDeep }}>Pick Your Lot</span>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
+              <button onClick={() => setAvailOnly(!availOnly)}
+                style={{ background: availOnly ? C.gold : C.card, color: availOnly ? '#1A160A' : C.inkSoft, border: `2px solid ${availOnly ? C.goldDeep : C.border}`, borderRadius: 999, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-oswald)', textTransform: 'uppercase', letterSpacing: '0.05em', minHeight: 44 }}>
+                {availOnly ? 'Available Only' : 'Show All 84'}
+              </button>
+              <div style={{ marginLeft: 'auto', fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>
+                <span style={{ color: C.ink }}>{shown.length}</span> {availOnly ? 'Available' : 'Shown'}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: 8, marginTop: 14 }}>
+              {shown.map((n) => {
+                const taken = RESERVED.has(n);
+                const isSel = selected === n;
+                return (
+                  <button key={n} className="tile" disabled={taken} onClick={() => setSelected(n)}
+                    aria-label={`Lot ${n}, ${taken ? 'reserved' : 'available'}`}
+                    style={{ background: taken ? C.paperDeep : isSel ? C.gold : C.card, color: taken ? C.inkSoft : C.ink, border: `2px solid ${isSel ? C.goldDeep : C.border}`, borderRadius: 10, padding: '12px 6px', textAlign: 'center', cursor: taken ? 'default' : 'pointer', opacity: taken ? 0.65 : 1, fontFamily: 'var(--font-oswald)', WebkitTapHighlightColor: 'transparent' }}>
+                    <div className="num" style={{ fontSize: 19, lineHeight: 1 }}>{n}</div>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.7, marginTop: 3 }}>{taken ? 'Taken' : 'Open'}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {selected && !RESERVED.has(selected) && (
+              <div className="fade" style={{ marginTop: 16, background: C.card, border: `2px solid ${C.goldDeep}`, borderRadius: 16, padding: '20px 22px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <span className="label" style={{ color: C.goldDeep }}>Gems Creek</span>
+                    <div className="display" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.4rem)', marginTop: 2 }}>Lot {selected}</div>
+                    <div style={{ fontSize: 14, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
+                      From $65,000 · Hold It With $1,000 · Exact Price Confirmed When You Reach Out
+                    </div>
+                  </div>
+                  <button onClick={() => setSelected(null)} aria-label="Close" style={{ color: C.inkSoft, background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={22} /></button>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
+                  <Btn kind="wa" href={wa(`Hey FEREST, I Want Lot ${selected} At Gems Creek. Is It Still Open?`)}>
+                    Claim Lot {selected} <ArrowRight size={15} strokeWidth={2.6} />
+                  </Btn>
+                  <Btn kind="ghost" href={CALENDLY}><Phone size={14} strokeWidth={2.4} /> Book A Call</Btn>
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: 14, fontSize: 12, color: C.inkSoft, fontWeight: 500 }}>
+              Availability Carried From The Official Flyer, Sept 15. Confirmed Live When You Reach Out.
+            </div>
+          </section>
+
+          {/* commercial pads */}
+          <section style={{ padding: '32px 0 0' }}>
+            <span className="label" style={{ color: C.goldDeep }}>Commercial Pads</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 12 }}>
+              {COMMERCIAL.map((c) => (
+                <div key={c.n} style={{ background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column' }}>
+                  <Store size={20} color={C.goldDeep} strokeWidth={2.2} />
+                  <div className="display" style={{ fontSize: '1.4rem', marginTop: 8 }}>Lot {c.n}</div>
+                  <div style={{ fontSize: 14, color: C.inkSoft, fontWeight: 600, marginTop: 4 }}>{c.acres} Acres · {c.sqft} Sqft · Fronts S. Alton Blvd</div>
+                  <div style={{ marginTop: 12 }}>
+                    <Btn kind="ghost" href={wa(`Hey FEREST, Tell Me About Commercial Lot ${c.n} At Gems Creek.`)}>Ask About It <ArrowRight size={13} strokeWidth={2.6} /></Btn>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* plat image */}
           {platOk && (
-            <section style={{ padding: '28px 0 0' }}>
+            <section style={{ padding: '36px 0 0' }}>
               <span className="label" style={{ color: C.goldDeep }}>The Layout</span>
               <div style={{ marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card, padding: 8 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -150,7 +251,7 @@ export default function GemsClient() {
                   onError={() => setPlatOk(false)} />
               </div>
               <div style={{ marginTop: 10, fontSize: 12, color: C.inkSoft, fontWeight: 500 }}>
-                Recorded Plat By M2 Engineering. Commercial Pads Front S. Alton Blvd (SH 107). Current Availability Confirmed When You Reach Out.
+                Recorded Plat By M2 Engineering. Commercial Pads Front S. Alton Blvd (SH 107).
               </div>
             </section>
           )}
@@ -181,7 +282,7 @@ export default function GemsClient() {
           <section style={{ padding: '36px 0 0' }}>
             <div style={{ background: C.paperDeep, border: `2px solid ${C.border}`, borderRadius: 16, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft }}>
-                A Development By <span style={{ color: C.ink }}>Elite Development</span> · The Team Behind Russell Creek In Edinburg
+                A Development By <span style={{ color: C.ink }}>Elite Development</span> · Listed With <span style={{ color: C.ink }}>Gema Hernandez, Realtor - GEMS Real Estate Group</span>
               </div>
               <span aria-hidden style={{ width: 1, height: 18, background: C.border }} />
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>

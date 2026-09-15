@@ -76,6 +76,17 @@ function Btn({ href, children, kind = 'primary', full }: {
   );
 }
 
+/** Partner logo tile - hides itself until the file exists in /public/brand. */
+function PartnerLogo({ src, alt }: { src: string; alt: string }) {
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} onError={() => setOk(false)}
+      style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 12, border: `2px solid ${C.border}`, background: '#0B0B0B', display: 'block' }} />
+  );
+}
+
 export default function GemsClient() {
   const [platOk, setPlatOk] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
@@ -142,22 +153,28 @@ export default function GemsClient() {
             </p>
 
             {/* partners - front and center */}
-            <div style={{ marginTop: 18, background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Development By</span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Elite Development</span>
+            <div style={{ marginTop: 18, background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <PartnerLogo src="/brand/elite-logo.png" alt="Elite Development" />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Development By</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Elite Development</span>
+                </div>
               </div>
-              <span aria-hidden style={{ width: 1, height: 26, background: C.border }} />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Listed With</span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Gema Hernandez, Realtor - GEMS Real Estate Group</span>
+              <span aria-hidden style={{ width: 1, height: 34, background: C.border }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <PartnerLogo src="/brand/gems-logo.png" alt="GEMS Real Estate Group" />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Listed With</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Gema Hernandez, Realtor - GEMS Real Estate Group</span>
+                </div>
               </div>
-              <span aria-hidden style={{ width: 1, height: 26, background: C.border }} />
+              <span aria-hidden style={{ width: 1, height: 34, background: C.border }} />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Engineering By</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={BRAND.m2} alt="M2 Engineering" style={{ height: 16, width: 'auto', display: 'block' }} />
+                  <img src={BRAND.m2} alt="M2 Engineering" style={{ height: 30, width: 'auto', display: 'block' }} />
                   <span className="label" style={{ fontSize: 9, color: C.inkSoft }}>TBPELS F-19545</span>
                 </span>
               </div>

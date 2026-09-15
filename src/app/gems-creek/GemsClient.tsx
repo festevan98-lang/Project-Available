@@ -141,6 +141,28 @@ export default function GemsClient() {
               <MapPin size={15} strokeWidth={2.2} /> City Of Alton, TX - 19.40 Acres Off S. Alton Blvd (SH 107). Streets Going In Now.
             </p>
 
+            {/* partners - front and center */}
+            <div style={{ marginTop: 18, background: C.card, border: `2px solid ${C.border}`, borderRadius: 16, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Development By</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Elite Development</span>
+              </div>
+              <span aria-hidden style={{ width: 1, height: 26, background: C.border }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Listed With</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Gema Hernandez, Realtor - GEMS Real Estate Group</span>
+              </div>
+              <span aria-hidden style={{ width: 1, height: 26, background: C.border }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="label" style={{ fontSize: 9, color: C.goldDeep }}>Engineering By</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={BRAND.m2} alt="M2 Engineering" style={{ height: 16, width: 'auto', display: 'block' }} />
+                  <span className="label" style={{ fontSize: 9, color: C.inkSoft }}>TBPELS F-19545</span>
+                </span>
+              </div>
+            </div>
+
             {/* live-style counts */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 24 }}>
               {[
@@ -169,6 +191,21 @@ export default function GemsClient() {
               </Btn>
             </div>
           </section>
+
+          {/* plat first - see the neighborhood, then pick the lot */}
+          {platOk && (
+            <section style={{ padding: '32px 0 0' }}>
+              <span className="label" style={{ color: C.goldDeep }}>The Layout</span>
+              <div style={{ marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card, padding: 8 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={PLAT_IMG} alt="Gems Creek Subdivision Layout" style={{ width: '100%', display: 'block', borderRadius: 10 }}
+                  onError={() => setPlatOk(false)} />
+              </div>
+              <div style={{ marginTop: 10, fontSize: 12, color: C.inkSoft, fontWeight: 500 }}>
+                Recorded Plat By M2 Engineering. Commercial Pads Front S. Alton Blvd (SH 107). Find Your Lot Below.
+              </div>
+            </section>
+          )}
 
           {/* lot directory */}
           <section style={{ padding: '32px 0 0' }}>
@@ -240,21 +277,6 @@ export default function GemsClient() {
               ))}
             </div>
           </section>
-
-          {/* plat image */}
-          {platOk && (
-            <section style={{ padding: '36px 0 0' }}>
-              <span className="label" style={{ color: C.goldDeep }}>The Layout</span>
-              <div style={{ marginTop: 12, borderRadius: 16, overflow: 'hidden', border: `2px solid ${C.border}`, background: C.card, padding: 8 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={PLAT_IMG} alt="Gems Creek Subdivision Layout" style={{ width: '100%', display: 'block', borderRadius: 10 }}
-                  onError={() => setPlatOk(false)} />
-              </div>
-              <div style={{ marginTop: 10, fontSize: 12, color: C.inkSoft, fontWeight: 500 }}>
-                Recorded Plat By M2 Engineering. Commercial Pads Front S. Alton Blvd (SH 107).
-              </div>
-            </section>
-          )}
 
           {/* who it's for */}
           <section style={{ padding: '40px 0 8px' }}>

@@ -85,12 +85,12 @@ const INVENTORY_LOTS: InventoryLot[] = [
   { id: 'lh-held', project: 'Laguna Heights', city: 'Mission, TX', lotNumber: '', sqft: 0, group: '5 Lots', street: 'Ask Us Which Ones', mapsQuery: 'Laguna Heights, Mission, TX' },
 ];
 
-// Laguna Heights fallback snapshot - tracker state 2026-09-14, minus lots
+// Laguna Heights fallback snapshot - tracker state 2026-09-23, minus lots
 // 141/142 (owner-confirmed removed from the plat; see lib/clickplat.ts).
 // Live sync via /api/lh-lots overrides this when it loads.
 const PRICE_PSF = 11.75;
 const LOTS_DATA: [number, number][] = [[1,7293],[2,6548],[3,6414],[4,6302],[5,6289],[6,6289],[7,6289],[8,6289],[9,6289],[10,6289],[11,6289],[12,6289],[13,6289],[14,6289],[15,6289],[16,6289],[17,6289],[18,6198],[19,5317],[20,9122],[21,5215],[22,5030],[23,5500],[24,5546],[25,5896],[26,6649],[27,7436],[28,7828],[29,5000],[30,5000],[31,5000],[32,5000],[33,5000],[34,5000],[35,5000],[36,5000],[37,5000],[38,5000],[39,5000],[40,5000],[41,5500],[42,5922],[43,5735],[44,5735],[45,5735],[46,5735],[47,5735],[48,5735],[49,5735],[50,5735],[51,5735],[52,5735],[53,5735],[54,5735],[55,5734],[56,5647],[57,6315],[58,6274],[59,6340],[60,8388],[61,5704],[62,5704],[63,5703],[64,5704],[65,5704],[66,5704],[67,5703],[68,5704],[69,5704],[70,5703],[71,5703],[72,5703],[73,5703],[74,5703],[75,5703],[76,5636],[77,6017],[78,5772],[79,5772],[80,5772],[81,5772],[82,5772],[83,5772],[84,5772],[85,5772],[86,5772],[87,5772],[88,5772],[89,5772],[90,5772],[91,5772],[92,5944],[93,5944],[94,5772],[95,5772],[96,5772],[97,5772],[98,5772],[99,5772],[100,5772],[101,5772],[102,5772],[103,5772],[104,5772],[105,5772],[106,5772],[107,5772],[108,5772],[109,5772],[110,5944],[111,5937],[112,5568],[113,5568],[114,5568],[115,5568],[116,5568],[117,5568],[118,5568],[119,5568],[120,5568],[121,5568],[122,5568],[123,5568],[124,5568],[125,5568],[126,5568],[127,5568],[128,5052],[129,5427],[130,8252],[131,6731],[132,6240],[133,5750],[134,5750],[135,5750],[136,5750],[137,5750],[138,5750],[139,5750],[140,6675]];
-const SOLD = new Set<number>([22,23,24,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,61,62,63,64,65,66,67,68,69,70,71,73,74,75,77,78,79,80,81,82,83,84,85,86,89,90,91,92,93,94,95,96,97,98,99,100,102,104,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,133,134,137,138,139]);
+const SOLD = new Set<number>([22,23,24,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,102,104,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,133,134,137,138,139]);
 const RESERVED = new Set<number>([]);
 
 type LotStatus = 'available' | 'reserved' | 'sold';
@@ -651,6 +651,11 @@ function StageBar({ index }: { index: number }) {
 function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolean }) {
   const [open, setOpen] = useState(false);
   const canExpand = !!p.detail;
+  const live = useLiveLots();
+  // The Laguna Heights hook carries the live lots-left count so it never goes stale.
+  const hook = p.id === 'laguna-heights' && live
+    ? `Only ${live.available} Lots Left. Streets Being Paved Right Now.`
+    : p.hook;
   return (
     <div style={{ borderTop: first ? 'none' : `2px solid ${C.border}` }}>
       <button
@@ -667,8 +672,8 @@ function DevRow({ p, first }: { p: (typeof PIPELINE_ROWS)[number]; first: boolea
                 <ChevronDown size={18} strokeWidth={2.6} color={C.goldDeep} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
               )}
             </div>
-            {p.hook && (
-              <div style={{ fontSize: 15, fontWeight: 600, color: C.goldDeep, marginTop: 4 }}>{p.hook}</div>
+            {hook && (
+              <div style={{ fontSize: 15, fontWeight: 600, color: C.goldDeep, marginTop: 4 }}>{hook}</div>
             )}
             <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600, marginTop: 2 }}>
               <MapPin size={13} strokeWidth={2} /> {p.city}

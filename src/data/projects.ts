@@ -79,7 +79,7 @@ export const SUBDIVISIONS: Subdivision[] = [
     status: 'Selling',
     stageIndex: 3,
     devType: 'Single-Family',
-    hook: 'Only 40 Lots Left. Streets Being Paved Right Now.',
+    hook: 'Only 37 Lots Left. Streets Being Paved Right Now.',
     stats: [
       { label: 'Lots', value: '140' },
       { label: 'Acres', value: '27' },

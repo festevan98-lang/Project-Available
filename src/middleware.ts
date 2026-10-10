@@ -3,6 +3,16 @@ import { ADMIN_COOKIE_NAME, expectedSessionValue } from '@/lib/admin/session';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // Portal: redirect when no session cookie is present. Real verification
+  // (signature, expiry, project access) happens server-side on every page/route.
+  if (path.startsWith('/portal')) {
+    if (path !== '/portal/login' && !request.cookies.get('ferest_portal')) {
+      return NextResponse.redirect(new URL('/portal/login', request.url));
+    }
+    return NextResponse.next();
+  }
+
   const cookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const expected = await expectedSessionValue();
   const authed = !!cookie && !!expected && cookie === expected;
@@ -24,5 +34,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/admin/:path*', '/portal/:path*'],
 };

@@ -39,3 +39,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# Investor portal private data (deal numbers, access codes) - never commit
+/portal-private/

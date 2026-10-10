@@ -27,10 +27,14 @@ export interface CatalogHome {
   id: string;
   name: string;
   type?: L10n;
-  beds: number;
-  baths: number;
-  sqft: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
   garage?: L10n;
+  /** One short line shown under the name. */
+  note?: L10n;
+  /** "/public/path.jpg" or "media/<file>" inside the catalog's private folder. */
+  image?: string;
   retail: number | null;
   price: number | null;
   /** Placeholder figures still under review; shown to the investor as preliminary. */
@@ -43,16 +47,21 @@ export interface CatalogLot {
   preliminary?: boolean;
   /** FEREST's list price; required for lots that show as sold on the live map. */
   retail?: number | null;
+  /** The investor's price; defaults to the list price less the catalog discount. */
+  price?: number | null;
 }
 
 export interface CatalogProject {
   slug: string;
   name: string;
   place: L10n;
-  blurb: L10n;
+  blurb?: L10n;
   /** "/public/path.jpg" or "media/<file>" inside the catalog's private folder. */
   image: string;
   caption?: L10n;
+  /** Image for the lot screens (the land itself); falls back to image. */
+  lotImage?: string;
+  lotCaption?: L10n;
   /** Pull lot size and retail price from the live map for this subdivision. */
   live?: 'laguna-heights';
   lots: CatalogLot[];

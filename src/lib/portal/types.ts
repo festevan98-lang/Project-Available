@@ -34,6 +34,8 @@ export interface PortalProject {
     prefRate: number;
     investorSplit: number;
     projectedInvestorProfit: number;
+    minInvest?: number;
+    maxInvest?: number;
     summary: string;
     waterfall: string[];
   };

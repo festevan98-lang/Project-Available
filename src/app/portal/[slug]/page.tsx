@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { currentInvestor, fileUrl, getProject } from '@/lib/portal/store';
 import { C, Shell, WHATSAPP, money } from '../ui';
+import AmountPicker from './AmountPicker';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   if (!p) notFound();
 
   const invested = position.invested;
-  const projectedProfit = invested ? Math.round((p.terms.projectedInvestorProfit * invested) / p.terms.dealSize) : null;
+  const projectedProfit = invested ? Math.round((p.terms.projectedInvestorProfit * invested) / p.terms.dealSize / 10) * 10 : null;
+  const { minInvest, maxInvest } = p.terms;
   const budgetTotal = p.budget.reduce((s, b) => s + b.budget, 0);
   const spentTotal = p.budget.reduce((s, b) => s + b.spent, 0);
   const doneCount = p.milestones.filter((m) => m.status === 'done').length;
@@ -50,7 +52,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <figcaption style={{ position: 'absolute', left: 10, bottom: 10, background: 'rgba(18,19,16,0.82)', color: C.paper, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 999 }}>{p.hero.caption}</figcaption>
         </figure>
         <div className="card" style={{ padding: '20px 22px', borderColor: C.goldDeep, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <span className="label">Your Position</span>
+          <span className="label">{invested || !(minInvest && maxInvest) ? 'Your Position' : 'Pick Your Amount'}</span>
           {invested ? (
             <>
               <div>
@@ -61,8 +63,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 <div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft }}>Projected Profit For You</div>
                 <div className="num" style={{ fontSize: 32, lineHeight: 1, color: C.goldDeep }}>~{money(projectedProfit ?? 0)}</div>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>Status: {position.status}</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                Your share of the lot: {((invested / p.terms.dealSize) * 100).toFixed(1)}% · Status: {position.status}
+              </div>
             </>
+          ) : minInvest && maxInvest ? (
+            <AmountPicker min={minInvest} max={maxInvest} dealSize={p.terms.dealSize} projectedInvestorProfit={p.terms.projectedInvestorProfit} />
           ) : (
             <>
               <div className="num" style={{ fontSize: 30, lineHeight: 1 }}>{position.status}</div>
@@ -72,7 +78,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </>
           )}
           <div style={{ borderTop: `2px solid ${C.border}`, paddingTop: 12, fontSize: 13.5, fontWeight: 600, lineHeight: 1.45 }}>
-            Your money back first, plus {Math.round(p.terms.prefRate * 100)}% a year, plus {Math.round(p.terms.investorSplit * 100)}% of the profit left over.
+            Your money back first, plus {Math.round(p.terms.prefRate * 100)}% a year on it, plus your share of the investors&apos; {Math.round(p.terms.investorSplit * 100)}% of the profit left over.
           </div>
         </div>
       </section>

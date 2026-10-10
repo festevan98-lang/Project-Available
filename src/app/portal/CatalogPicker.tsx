@@ -16,6 +16,7 @@ export interface PickerLot {
   sqft: number | null;
   retail: number | null;
   price: number | null;
+  preliminary?: boolean;
 }
 
 const StepTitle = ({ n, children }: { n: number; children: React.ReactNode }) => (
@@ -23,6 +24,12 @@ const StepTitle = ({ n, children }: { n: number; children: React.ReactNode }) =>
     <span className="num" style={{ width: 28, height: 28, borderRadius: 999, background: C.ink, color: C.goldHi, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{n}</span>
     <span style={{ fontSize: 18, fontWeight: 700 }}>{children}</span>
   </div>
+);
+
+const Prelim = ({ lang }: { lang: Lang }) => (
+  <span style={{ alignSelf: 'flex-start', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.inkSoft, background: C.paperDeep, border: `1px dashed ${C.inkSoft}`, borderRadius: 999, padding: '2px 8px' }}>
+    {t(lang, 'prelim')}
+  </span>
 );
 
 const pick = (on: boolean): React.CSSProperties => ({
@@ -70,6 +77,7 @@ export default function CatalogPicker({ lang, project, lots, homes, discountPct,
 
   const retailTotal = lot?.retail != null && (!home || home.retail != null) ? lot.retail + (home?.retail ?? 0) : null;
   const yourTotal = lot?.price != null && (!home || home.price != null) ? lot.price + (home?.price ?? 0) : null;
+  const preliminary = !!(lot?.preliminary || home?.preliminary);
   const saved = retailTotal != null && yourTotal != null && retailTotal > yourTotal ? retailTotal - yourTotal : null;
 
   const lotLabel = lot ? t(lang, 'lot', { n: lot.n ?? '' }) : t(lang, 'lotPending');
@@ -84,6 +92,7 @@ export default function CatalogPicker({ lang, project, lots, homes, discountPct,
           l.n ? (
             <button key={l.key} type="button" aria-pressed={l.key === lotKey} onClick={() => setLotKey(l.key)} style={pick(l.key === lotKey)}>
               <span className="display" style={{ fontSize: 22 }}>{t(lang, 'lot', { n: l.n })}</span>
+              {l.preliminary && <Prelim lang={lang} />}
               {l.sqft ? <span style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>{area(l.sqft, lang)}</span> : null}
               <PriceLine lang={lang} retail={l.retail} price={l.price} />
             </button>
@@ -110,6 +119,7 @@ export default function CatalogPicker({ lang, project, lots, homes, discountPct,
         {homes.map((h) => (
           <button key={h.id} type="button" aria-pressed={option === h.id} onClick={() => setOption(h.id)} style={pick(option === h.id)}>
             <span className="display" style={{ fontSize: 22 }}>{h.name}</span>
+            {h.preliminary && <Prelim lang={lang} />}
             {h.type && <span style={{ fontSize: 13, fontWeight: 700, color: C.goldDeep }}>{h.type[lang]}</span>}
             <span style={{ fontSize: 14, fontWeight: 600 }}>{t(lang, 'bedBath', { b: h.beds, ba: h.baths })}</span>
             <span style={{ fontSize: 13, color: C.inkSoft, fontWeight: 600 }}>{area(h.sqft, lang)}{h.garage ? ` · ${h.garage[lang]}` : ''}</span>
@@ -134,6 +144,7 @@ export default function CatalogPicker({ lang, project, lots, homes, discountPct,
         {saved != null && (
           <div style={{ fontSize: 15, fontWeight: 700, color: C.goldHi }}>{t(lang, 'save')}: {money(saved)}</div>
         )}
+        {preliminary && <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.8 }}>{t(lang, 'prelimNote')}</div>}
         <a href={`${wa}?text=${encodeURIComponent(message)}`} target="_blank" rel="noopener noreferrer"
           style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', gap: 8, background: C.wa, color: C.waText, border: `3px solid ${C.waBorder}`, borderRadius: 999, padding: '12px 22px', fontWeight: 700, fontSize: 14, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none', minHeight: 48, marginTop: 4 }}>
           {t(lang, 'cta')}

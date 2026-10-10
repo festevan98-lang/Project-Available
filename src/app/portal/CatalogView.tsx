@@ -41,6 +41,7 @@ export default async function CatalogView({ catalog, investor, lang }: { catalog
             sqft: l.sqft ?? liveLot?.sqft ?? null,
             retail,
             price: retail != null ? Math.round(retail * (1 - catalog.lotDiscount)) : null,
+            preliminary: l.preliminary,
           };
         });
         return (

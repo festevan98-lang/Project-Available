@@ -55,6 +55,11 @@ const dict = {
   retailTotal: { es: 'Precio de lista total', en: 'Total retail price' },
   save: { es: 'Su ahorro', en: 'You save' },
   pending: { es: 'Por confirmar', en: 'To be confirmed' },
+  prelim: { es: 'Preliminar', en: 'Preliminary' },
+  prelimNote: {
+    es: 'Incluye datos preliminares, sujetos a confirmación por escrito de FEREST.',
+    en: 'Includes preliminary figures, subject to written confirmation by FEREST.',
+  },
   cta: { es: 'Me interesa · WhatsApp', en: "I'm interested · WhatsApp" },
   waMsg: {
     es: 'Hola Fernando, me interesa: {project} · {lot} · {option}. Mi precio (USD): {price}.',

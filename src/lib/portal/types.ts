@@ -33,11 +33,14 @@ export interface CatalogHome {
   garage?: L10n;
   retail: number | null;
   price: number | null;
+  /** Placeholder figures still under review; shown to the investor as preliminary. */
+  preliminary?: boolean;
 }
 
 export interface CatalogLot {
   lot: string | null;
   sqft?: number | null;
+  preliminary?: boolean;
   /** FEREST's list price; required for lots that show as sold on the live map. */
   retail?: number | null;
 }

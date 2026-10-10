@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
   // (signature, expiry, project access) happens server-side on every page/route.
   if (path.startsWith('/portal')) {
     if (path !== '/portal/login' && !request.cookies.get('ferest_portal')) {
-      return NextResponse.redirect(new URL('/portal/login', request.url));
+      return NextResponse.redirect(new URL('/portal/login' + request.nextUrl.search, request.url));
     }
     return NextResponse.next();
   }

@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react';
+import type { Lang } from '@/lib/portal/types';
+import { t } from './i18n';
+import LangToggle from './LangToggle';
 
 export const C = {
   paper: '#F4F1E8',
@@ -33,35 +36,44 @@ export const portalCss = `
     background-size: 26px 26px; }
 `;
 
-/** Branded page frame: header with logo, investor name and log out. */
-export function Shell({ name, children }: { name?: string; children: ReactNode }) {
+/** Branded page frame: header with logo, investor name, language toggle and log out. */
+export function Shell({ name, lang = 'en', toggle = false, footer, children }: {
+  name?: string;
+  lang?: Lang;
+  /** Show the ES/EN switch (only on pages whose content is translated). */
+  toggle?: boolean;
+  footer?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="pt grid-bg" style={{ background: C.paper, minHeight: '100vh' }}>
+    <div className="pt grid-bg" lang={lang} style={{ background: C.paper, minHeight: '100vh' }}>
       <style>{portalCss}</style>
       <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(244,241,232,0.92)', backdropFilter: 'blur(12px)', borderBottom: `2px solid ${C.goldDeep}` }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/ferest-mark.webp" alt="FEREST" style={{ height: 28, width: 'auto' }} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/ferest-wordmark.webp" alt="FEREST" style={{ height: 14, width: 'auto' }} />
-            <span className="label" style={{ marginLeft: 6, fontSize: 10 }}>Investor Portal</span>
+            <span className="label hidden sm:inline" style={{ marginLeft: 6, fontSize: 10 }}>{t(lang, 'portal')}</span>
           </div>
-          {name && (
-            <form action="/api/portal/logout" method="post" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft }} className="hidden sm:inline">{name}</span>
-              <button type="submit" style={{ background: 'transparent', border: `2px solid ${C.goldDeep}`, color: C.goldDeep, borderRadius: 999, padding: '7px 14px', fontFamily: 'inherit', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', minHeight: 36 }}>
-                Log Out
-              </button>
-            </form>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {name && <span style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft }} className="hidden md:inline">{name}</span>}
+            {toggle && <LangToggle lang={lang} />}
+            {name && (
+              <form action="/api/portal/logout" method="post">
+                <button type="submit" style={{ background: 'transparent', border: `2px solid ${C.goldDeep}`, color: C.goldDeep, borderRadius: 999, padding: '7px 14px', fontFamily: 'inherit', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', minHeight: 36 }}>
+                  {t(lang, 'logout')}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </header>
       <main style={{ maxWidth: 1000, margin: '0 auto', padding: '0 20px 64px' }}>{children}</main>
       <footer style={{ maxWidth: 1000, margin: '0 auto', padding: '0 20px 40px' }}>
         <div style={{ borderTop: `2px solid ${C.goldDeep}`, paddingTop: 16, fontSize: 11.5, color: C.inkSoft, lineHeight: 1.5 }}>
-          Private and confidential. For investors in this project only. This is not an offer to sell securities;
-          terms are set only in a final signed agreement. All projections are estimates, not promises.
+          {footer ?? t(lang, 'footerDeal')}
         </div>
       </footer>
     </div>

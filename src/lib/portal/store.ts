@@ -6,8 +6,10 @@ import { PORTAL_COOKIE, verifySession } from './session';
 
 const SLUG = /^[a-z0-9-]+$/;
 
+// Bypass the CDN cache: removing an investor from investors.json must revoke
+// access immediately, and content edits should show on the next page load.
 async function readText(pathname: string): Promise<string | null> {
-  const res = await get(pathname, { access: 'private' });
+  const res = await get(pathname, { access: 'private', useCache: false });
   if (!res || res.statusCode !== 200 || !res.stream) return null;
   return new Response(res.stream).text();
 }

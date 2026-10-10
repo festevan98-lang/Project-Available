@@ -49,7 +49,7 @@ export default function AmountPicker({ min, max, dealSize, projectedInvestorProf
         </div>
       </div>
       <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.45 }}>
-        About <span style={{ color: GOLD_DEEP }}>{money(amount + profit)}</span> back in total. Every dollar earns the same ~{pct}%, so your profit grows with your amount.
+        About <span style={{ color: GOLD_DEEP }}>{money(amount + profit)}</span> back in total. Every dollar earns the same projected {pct}% at the target sale price, so your profit grows with your amount.
       </div>
     </div>
   );

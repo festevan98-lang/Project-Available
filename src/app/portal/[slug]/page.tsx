@@ -78,7 +78,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </>
           )}
           <div style={{ borderTop: `2px solid ${C.border}`, paddingTop: 12, fontSize: 13.5, fontWeight: 600, lineHeight: 1.45 }}>
-            Your money back first, plus {Math.round(p.terms.prefRate * 100)}% a year on it, plus your share of the investors&apos; {Math.round(p.terms.investorSplit * 100)}% of the profit left over.
+            After the bank is paid: your money back, plus {Math.round(p.terms.prefRate * 100)}% a year on it, plus your share of the investors&apos; half of any profit left. FEREST&apos;s half comes last.
           </div>
         </div>
       </section>

@@ -47,7 +47,10 @@ export interface CatalogHome {
   type?: L10n;
   beds?: number;
   baths?: number;
+  /** Living (air-conditioned) area; banks appraise on this. */
   sqft?: number;
+  /** Total area under roof (living + garage, porch, patio); builders price per this. */
+  totalSqft?: number;
   garage?: L10n;
   /** One short line shown under the name. */
   note?: L10n;
@@ -90,7 +93,7 @@ export interface CatalogProject {
   map?: MapPin;
   /** Lot price per sqft of land. */
   lotRate?: Rate;
-  /** Build price per living sqft. */
+  /** Build price per sqft of total area under roof. */
   buildRate?: Rate;
   /** Appraisal value per living sqft for the area, used to show estimated value. */
   appraisal?: { perSqft: number; note: L10n };

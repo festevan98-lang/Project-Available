@@ -28,6 +28,7 @@ export interface AppHome {
   specs: string | null;
   images: AppImage[];
   sqft: number | null;
+  totalSqft: number | null;
   retail: number | null;
   price: number | null;
   rate: Rate | null;
@@ -95,7 +96,8 @@ export async function buildAppProjects(catalog: Catalog, lang: Lang, shareToken?
     }),
     homes: p.homes.map((h) => {
       const sqft = h.sqft ?? null;
-      const fromRate = p.buildRate && sqft ? p.buildRate : null;
+      const buildSqft = h.totalSqft ?? sqft;
+      const fromRate = p.buildRate && buildSqft ? p.buildRate : null;
       const images: AppImage[] = [
         ...(h.image ? [{ src: img(h.image), caption: null }] : []),
         ...(h.gallery ?? []).map((g) => ({ src: img(g.src), caption: g.caption?.[lang] ?? null })),
@@ -105,14 +107,14 @@ export async function buildAppProjects(catalog: Catalog, lang: Lang, shareToken?
         name: h.name,
         sub: h.type?.[lang] ?? h.note?.[lang] ?? null,
         specs: [
-          h.beds != null && h.baths != null ? t(lang, 'bedBath', { b: h.beds, ba: h.baths }) : null,
-          sqft ? area(sqft, lang) : null,
-          h.garage?.[lang] ?? null,
-        ].filter(Boolean).join(' · ') || null,
+          [h.beds != null && h.baths != null ? t(lang, 'bedBath', { b: h.beds, ba: h.baths }) : null, h.garage?.[lang] ?? null].filter(Boolean).join(' · '),
+          sqft && h.totalSqft ? t(lang, 'areas', { living: area(sqft, lang), total: area(h.totalSqft, lang) }) : sqft ? area(sqft, lang) : null,
+        ].filter(Boolean).join('\n') || null,
         images: images.length ? images : [{ src: img(p.image), caption: p.caption?.[lang] ?? null }],
         sqft,
-        retail: h.retail ?? (fromRate ? Math.round(sqft! * fromRate.retail) : null),
-        price: h.price ?? (fromRate ? Math.round(sqft! * fromRate.price) : null),
+        totalSqft: h.totalSqft ?? null,
+        retail: h.retail ?? (fromRate ? Math.round(buildSqft! * fromRate.retail) : null),
+        price: h.price ?? (fromRate ? Math.round(buildSqft! * fromRate.price) : null),
         rate: h.retail == null && h.price == null ? fromRate : null,
         preliminary: !!h.preliminary,
       };

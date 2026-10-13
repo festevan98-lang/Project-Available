@@ -186,7 +186,7 @@ export default function InvestorApp({ lang, projects, mode, hello, helloSub, bra
   function detail(o: {
     title: string; sub: string | null; specs?: string | null; media: React.ReactNode;
     rows: { label: string; value: number | null }[]; yours: number | null; list: number | null;
-    rateLine?: string | null; value?: { est: number; line: string; note: string } | null;
+    rateLine?: string | null; value?: { est: number; line: string; note: string } | null; info?: string | null;
     preliminary: boolean; item: string; chooser?: React.ReactNode; map?: string | null; target: ShareTarget;
   }) {
     const saved = o.yours != null && o.list != null && o.list > o.yours ? o.list - o.yours : null;
@@ -199,7 +199,7 @@ export default function InvestorApp({ lang, projects, mode, hello, helloSub, bra
           <div style={{ padding: '18px 20px 20px' }}>
             <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>{o.title}</div>
             {o.sub && <div style={{ fontSize: 15, color: UI.soft, marginTop: 4, lineHeight: 1.4 }}>{o.sub}</div>}
-            {o.specs && <div style={{ fontSize: 14, color: UI.soft, marginTop: 6, lineHeight: 1.4 }}>{o.specs}</div>}
+            {o.specs && <div style={{ fontSize: 14, color: UI.soft, marginTop: 6, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{o.specs}</div>}
             {o.chooser}
             <div style={{ marginTop: 18, borderTop: `1px solid ${UI.line}` }}>
               {o.rows.map((r) => (
@@ -226,6 +226,12 @@ export default function InvestorApp({ lang, projects, mode, hello, helloSub, bra
                 </div>
               )}
             </div>
+            {o.info && (
+              <div style={{ marginTop: 14, display: 'flex', gap: 10, background: '#F5F5F7', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: UI.soft, lineHeight: 1.45 }}>
+                <span aria-hidden="true" style={{ flexShrink: 0, width: 18, height: 18, borderRadius: 999, background: UI.soft, color: '#fff', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>i</span>
+                <span>{o.info}</span>
+              </div>
+            )}
             {o.value && equity != null && equity > 0 && (
               <div style={{ marginTop: 14, background: UI.greenSoft, borderRadius: 14, padding: '14px 16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 15, fontWeight: 600 }}>
@@ -418,7 +424,7 @@ export default function InvestorApp({ lang, projects, mode, hello, helloSub, bra
           ),
           rows: [
             { label: [lotLabel || t(lang, 'rowLot'), lot?.rate && lot.sqft ? `${lot.sqft.toLocaleString('en-US')} ${lang === 'es' ? 'ft²' : 'sq ft'} × ${rate(lot.rate.price)}` : null].filter(Boolean).join(' · '), value: lot?.price ?? null },
-            { label: h.rate && h.sqft ? t(lang, 'buildRow', { sqft: h.sqft.toLocaleString('en-US'), rate: rate(h.rate.price) }) : (/^casa\b/i.test(h.name) ? h.name : `${t(lang, 'rowHouse')} · ${h.name}`), value: h.price },
+            { label: h.rate && (h.totalSqft ?? h.sqft) ? t(lang, 'buildRow', { sqft: (h.totalSqft ?? h.sqft)!.toLocaleString('en-US'), rate: rate(h.rate.price) }) : (/^casa\b/i.test(h.name) ? h.name : `${t(lang, 'rowHouse')} · ${h.name}`), value: h.price },
           ],
           yours,
           list: sum(lot?.retail ?? null, h.retail),
@@ -427,6 +433,7 @@ export default function InvestorApp({ lang, projects, mode, hello, helloSub, bra
             line: t(lang, 'valueLine', { sqft: h.sqft.toLocaleString('en-US'), rate: rate(p.appraisal.perSqft) }),
             note: p.appraisal.note,
           } : null,
+          info: h.rate && h.totalSqft && h.sqft ? t(lang, 'sqftNote', { rate: rate(h.rate.price), total: h.totalSqft.toLocaleString('en-US'), living: h.sqft.toLocaleString('en-US') }) : null,
           preliminary: h.preliminary || !!lot?.preliminary,
           item: t(lang, 'itemHome', { home: h.name, lot: lotLabel }),
           map: lot?.map ?? null,

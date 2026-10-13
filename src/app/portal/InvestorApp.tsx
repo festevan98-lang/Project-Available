@@ -65,11 +65,11 @@ const Badge = ({ lang }: { lang: Lang }) => (
   </span>
 );
 
-function Photo({ img, alt, ratio = '16 / 10' }: { img: AppImage; alt: string; ratio?: string }) {
+function Photo({ img, alt, ratio = '16 / 10', lazy = false }: { img: AppImage; alt: string; ratio?: string; lazy?: boolean }) {
   return (
     <div style={{ position: 'relative', aspectRatio: ratio, background: '#E9E6DD' }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={img.src} alt={alt} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <img src={img.src} alt={alt} loading={lazy ? 'lazy' : 'eager'} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       {img.caption && (
         <span style={{ position: 'absolute', right: 10, bottom: 10, fontSize: 11, color: '#fff', background: 'rgba(0,0,0,0.45)', borderRadius: 999, padding: '3px 9px', backdropFilter: 'blur(6px)' }}>{img.caption}</span>
       )}
@@ -83,7 +83,7 @@ function Gallery({ images, alt }: { images: AppImage[]; alt: string }) {
   return (
     <div style={{ position: 'relative' }}>
       <div className="fx-gallery" onScroll={(e) => setI(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
-        {images.map((im, k) => <div key={im.src + k}><Photo img={im} alt={`${alt} ${k + 1}`} ratio="4 / 3" /></div>)}
+        {images.map((im, k) => <div key={im.src + k}><Photo img={im} alt={`${alt} ${k + 1}`} ratio="4 / 3" lazy={k > 0} /></div>)}
       </div>
       <span style={{ position: 'absolute', left: 10, top: 10, fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,0.45)', borderRadius: 999, padding: '3px 9px' }}>
         {i + 1} / {images.length}

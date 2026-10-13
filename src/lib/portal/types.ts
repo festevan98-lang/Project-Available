@@ -20,6 +20,24 @@ export interface Investor {
   lang?: Lang;
   /** Id of a private price catalog (portal/catalogs/<id>/catalog.json). */
   catalog?: string;
+  /** Set false to stop this investor's share links from opening. */
+  share?: boolean;
+  /** WhatsApp number, digits with country code; people he shares with contact him here. */
+  whatsapp?: string;
+}
+
+/** Map pin for Apple Maps (satellite view). */
+export interface MapPin {
+  lat?: number;
+  lng?: number;
+  /** Street address, used when there are no coordinates. */
+  address?: string;
+}
+
+/** Price per square foot: list (retail) and the investor's price. */
+export interface Rate {
+  retail: number;
+  price: number;
 }
 
 /** A home that can be built on a catalog lot. Prices exclude the lot. */
@@ -35,6 +53,9 @@ export interface CatalogHome {
   note?: L10n;
   /** "/public/path.jpg" or "media/<file>" inside the catalog's private folder. */
   image?: string;
+  /** Extra photos for the detail gallery (real photos and renders). */
+  gallery?: { src: string; caption?: L10n }[];
+  /** Build price excluding the lot; when null, computed from the project's buildRate x sqft. */
   retail: number | null;
   price: number | null;
   /** Placeholder figures still under review; shown to the investor as preliminary. */
@@ -47,8 +68,10 @@ export interface CatalogLot {
   preliminary?: boolean;
   /** FEREST's list price; required for lots that show as sold on the live map. */
   retail?: number | null;
-  /** The investor's price; defaults to the list price less the catalog discount. */
+  /** The investor's price; defaults to lotRate x sqft, else the list price less the catalog discount. */
   price?: number | null;
+  address?: string;
+  map?: MapPin;
 }
 
 export interface CatalogProject {
@@ -64,6 +87,13 @@ export interface CatalogProject {
   lotCaption?: L10n;
   /** Pull lot size and retail price from the live map for this subdivision. */
   live?: 'laguna-heights';
+  map?: MapPin;
+  /** Lot price per sqft of land. */
+  lotRate?: Rate;
+  /** Build price per living sqft. */
+  buildRate?: Rate;
+  /** Appraisal value per living sqft for the area, used to show estimated value. */
+  appraisal?: { perSqft: number; note: L10n };
   lots: CatalogLot[];
   homes: CatalogHome[];
 }
@@ -74,6 +104,8 @@ export interface Catalog {
   /** Investor discount on the lot price, as a fraction (0-1). */
   lotDiscount: number;
   intro: L10n;
+  /** The investor's own brand, shown next to FEREST and on pages he shares. */
+  brand?: { name: string; logo?: string };
   projects: CatalogProject[];
 }
 

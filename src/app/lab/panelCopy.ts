@@ -66,8 +66,8 @@ const dict = {
   i_structure: { es: 'LLC y contador $ (una vez)', en: 'LLC and accountant $ (once)' },
   financeTitle: { es: 'Financiamiento y tiempo', en: 'Financing and timing' },
   financeHint: {
-    es: 'Con 0% se calcula de contado. Los préstamos para extranjeros suelen pedir 30-40% de enganche y tasas más altas que un crédito local.',
-    en: 'At 0% it is all cash. Loans to foreign nationals usually need 30-40% down and higher rates than a local loan.',
+    es: 'Con 0% se calcula de contado. Los créditos para extranjeros piden 25-30% de enganche, tasas de 7 a 9.5% y reservas de 6 a 12 meses. Para obra casi no existen: lo usual es contado.',
+    en: 'At 0% it is all cash. Loans to foreigners need 25-30% down, rates of 7 to 9.5% and 6 to 12 months of reserves. Construction loans barely exist for them: cash is the norm.',
   },
   interestNote: { es: 'El préstamo de obra se dispone por avances: los intereses se calculan sobre ~60% del saldo en promedio.', en: 'A construction loan is drawn as work advances: interest is figured on ~60% of the balance on average.' },
 

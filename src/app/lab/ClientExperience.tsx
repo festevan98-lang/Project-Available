@@ -402,10 +402,16 @@ export default function ClientExperience({ lang, partner, label, projects, oppor
             </li>
           ))}
         </ol>
+        <div className="card" style={{ marginTop: 22, padding: '16px 18px', borderColor: T.gold }}>
+          <div style={{ fontWeight: 600 }}>{L(lang, 'finTitle')}</div>
+          <ul style={{ margin: '8px 0 0', paddingLeft: 18, display: 'grid', gap: 6, fontSize: 14, lineHeight: 1.5 }}>
+            {(['fin1', 'fin2', 'fin3', 'fin4', 'fin5'] as LabKey[]).map((k) => <li key={k}>{L(lang, k)}</li>)}
+          </ul>
+        </div>
         <div className="card" style={{ marginTop: 22, padding: '16px 18px' }}>
           <div style={{ fontWeight: 600 }}>{L(lang, 'knowTitle')}</div>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18, display: 'grid', gap: 6, fontSize: 14, color: T.muted, lineHeight: 1.5 }}>
-            {(['know1', 'know2', 'know3'] as LabKey[]).map((k) => <li key={k}>{L(lang, k)}</li>)}
+            {(['know1', 'know2', 'know3', 'know4', 'know5'] as LabKey[]).map((k) => <li key={k}>{L(lang, k)}</li>)}
           </ul>
         </div>
       </div>

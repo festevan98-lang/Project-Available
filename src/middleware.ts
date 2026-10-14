@@ -4,6 +4,12 @@ import { ADMIN_COOKIE_NAME, expectedSessionValue } from '@/lib/admin/session';
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // Lab test deployment: the root shows the partner site (set LAB_HOME to /lab/<partner-slug>). Unset everywhere else.
+  if (path === '/') {
+    const home = process.env.LAB_HOME;
+    return home && /^\/lab\/[a-z0-9-]+$/.test(home) ? NextResponse.rewrite(new URL(home, request.url)) : NextResponse.next();
+  }
+
   // Portal: redirect when no session cookie is present. Real verification
   // (signature, expiry, project access) happens server-side on every page/route.
   if (path.startsWith('/portal')) {
@@ -34,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*', '/portal/:path*'],
+  matcher: ['/', '/admin/:path*', '/api/admin/:path*', '/portal/:path*'],
 };

@@ -59,7 +59,7 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
   return (
     <LabShell lang={lang} brand={brand} wide right={
       <form action="/api/lab/logout" method="post">
-        <button type="submit" style={{ background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 13, color: T.muted, cursor: 'pointer' }}>{L(lang, 'logout')}</button>
+        <button type="submit" style={{ background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 13, color: T.muted, cursor: 'pointer', whiteSpace: 'nowrap' }}>{L(lang, 'logout')}</button>
       </form>
     }>
       <PanelClient

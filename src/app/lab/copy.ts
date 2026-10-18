@@ -108,7 +108,7 @@ const dict = {
   faq4a: { es: 'FEREST, con un ingeniero civil con licencia en Texas. Cada etapa pasa la inspección de la ciudad y su asesor le comparte el avance.', en: 'FEREST, led by a Texas-licensed civil engineer. Each stage passes city inspection and your advisor shares the progress with you.' },
 
   // login
-  loginTitle: { es: 'Acceso privado', en: 'Private access' },
+  loginTitle: { es: 'Bienvenido', en: 'Welcome' },
   loginBody: { es: 'Ingrese el código que recibió.', en: 'Enter the code you received.' },
   code: { es: 'Código de acceso', en: 'Access code' },
   codeBad: { es: 'Ese código no funcionó.', en: "That code didn't work." },

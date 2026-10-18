@@ -88,11 +88,13 @@ export async function getAccounts(): Promise<LabAccount[]> {
 export async function currentAccount(): Promise<LabAccount | null> {
   const id = verifyLabSession((await cookies()).get(LAB_COOKIE)?.value);
   if (!id) return null;
-  return (await getAccounts()).find((a) => a.id === id) ?? null;
+  const account = (await getAccounts()).find((a) => a.id === id) ?? null;
+  // Client codes never hold a panel session.
+  return account && account.role !== 'client' ? account : null;
 }
 
 export const canManage = (account: LabAccount | null, partner: string) =>
-  !!account && (account.role === 'owner' || account.partner === partner);
+  !!account && (account.role === 'owner' || (account.role === 'partner' && account.partner === partner));
 
 export async function getLink(id: string): Promise<ClientLink | null> {
   if (!LINK_ID.test(id)) return null;

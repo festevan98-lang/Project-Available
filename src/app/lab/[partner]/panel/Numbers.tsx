@@ -78,18 +78,20 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
   const homeIn = useMemo(() => {
     if (!lot || !home) return null;
     const total = home.totalSqft ?? home.sqft ?? 0;
-    const r = home.rate ?? { retail: total ? home.retail! / total : 0, price: total ? home.price! / total : 0 };
+    const basisArea = home.rateBasis === 'living' ? home.sqft ?? total : total;
+    const r = home.rate ?? { retail: basisArea ? home.retail! / basisArea : 0, price: basisArea ? home.price! / basisArea : 0 };
     return {
       living: home.sqft ?? total,
       total,
       lot: { list: lot.retail!, partner: lot.price! },
       rate: { list: r.retail, partner: tryRate ?? r.price },
+      rateBasis: home.rateBasis ?? 'total',
     };
   }, [lot, home, tryRate]);
 
   if (!project || !homeIn || !lot || !home) return null;
 
-  const listPrice = homeIn.lot.list + Math.round(homeIn.total * homeIn.rate.list);
+  const listPrice = homeIn.lot.list + Math.round((homeIn.rateBasis === 'living' ? homeIn.living : homeIn.total) * homeIn.rate.list);
   const mkt = market.find((m) => m.slug === project.slug) ?? null;
   const marketPrice = mkt ? Math.round(mkt.perLiving * homeIn.living) : project.appraisal ? Math.round(project.appraisal.perSqft * homeIn.living) : null;
   const saleKey = `${exit}:${project.slug}:${lot.key}:${home.id}`;
@@ -251,7 +253,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
         <div><div style={{ color: T.muted, fontSize: 12 }}>{P(lang, 'areaTotal')}</div><b>{n(homeIn.total)} ft²</b></div>
         <div><div style={{ color: T.muted, fontSize: 12 }}>{P(lang, 'lotList')}</div><b>{money(homeIn.lot.list)}</b></div>
         <div><div style={{ color: T.muted, fontSize: 12 }}>{P(lang, 'volumeDiscount')}</div><b>{res.partnerTier ? pct(discount) : '0%'}</b></div>
-        <div><div style={{ color: T.muted, fontSize: 12 }}>{P(lang, 'contractRate')}</div><b>{rate(res.partnerTier ? homeIn.rate.partner : homeIn.rate.list)}/ft²</b></div>
+        <div><div style={{ color: T.muted, fontSize: 12 }}>{P(lang, homeIn.rateBasis === 'living' ? 'contractRateLiving' : 'contractRate')}</div><b>{rate(res.partnerTier ? homeIn.rate.partner : homeIn.rate.list)}/ft²</b></div>
       </div>
 
       <div className="kicker" style={{ marginTop: 22 }}>{P(lang, 'exitTitle')}</div>
@@ -293,8 +295,8 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
       {SECTIONS.map(section)}
 
       <div style={{ marginTop: 12, fontSize: 13, color: T.muted, lineHeight: 1.5 }}>
-        {P(lang, 'contractLine', { v: money(res.contract), rate: rate(res.partnerTier ? homeIn.rate.partner : homeIn.rate.list), sqft: n(homeIn.total) })}
-        {model.showBuilderMargin && ` ${P(lang, 'contractSplit', { cost: money(res.contractCost), margin: money(res.builderMargin), pct: pct(res.contract ? res.builderMargin / res.contract : 0) })}`}
+        {P(lang, homeIn.rateBasis === 'living' ? 'contractLineLiving' : 'contractLine', { v: money(res.contract), rate: rate(res.partnerTier ? homeIn.rate.partner : homeIn.rate.list), sqft: n(homeIn.rateBasis === 'living' ? homeIn.living : homeIn.total) })}
+        {res.showSplit && ` ${P(lang, 'contractSplit', { cost: money(res.contractCost), margin: money(res.builderMargin), pct: pct(res.contract ? res.builderMargin / res.contract : 0) })}`}
         {contractRows.length > 0 && ` ${model.source[lang]}`}
       </div>
 

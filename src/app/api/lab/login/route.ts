@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAccounts, getPartner } from '@/lib/lab/store';
+import { getAccounts, getLink, getPartner } from '@/lib/lab/store';
 import type { LabAccount } from '@/lib/lab/types';
 import { LAB_COOKIE, hashLabCode, signLabSession } from '@/lib/lab/session';
 import { getInvestors } from '@/lib/portal/store';
@@ -33,6 +33,14 @@ export async function POST(request: Request) {
   if (!account) {
     await new Promise((r) => setTimeout(r, 700));
     return NextResponse.json({ ok: false }, { status: 401 });
+  }
+  // A client code opens the partner's client view through its tracked link; no panel session.
+  if (account.role === 'client') {
+    const link = account.linkId ? await getLink(account.linkId) : null;
+    if (!link || link.revokedAt || link.partner !== account.partner || !(await getPartner(account.partner))) {
+      return NextResponse.json({ ok: false }, { status: 401 });
+    }
+    return NextResponse.json({ ok: true, redirect: `/lab/i/${link.id}` });
   }
   const { value, maxAge } = signLabSession(account.id);
   const res = NextResponse.json({ ok: true, partner: account.partner });

@@ -37,9 +37,12 @@ export interface Opportunity {
 export interface LabAccount {
   id: string;
   name: string;
-  role: 'owner' | 'partner';
+  /** owner = FEREST, partner = the partner's panel, client = a shared code that opens the partner's client view. */
+  role: 'owner' | 'partner' | 'client';
   /** Partner slug this account manages; owners may manage any partner. */
   partner: string;
+  /** For client codes: the client link the code opens (so visits are tracked like any link). */
+  linkId?: string;
   codeHash: string;
 }
 
@@ -104,6 +107,11 @@ export interface LabNumbers {
   plans: LabPlan[];
   /** Prices the partner's clients see on client links (default until the partner sets their own). */
   clientPrice: 'list' | 'partner';
+  /** Lab build price per sq ft (list and partner) and the area it applies to. Overrides the catalog rate. */
+  buildRate?: { retail: number; price: number };
+  buildBasis?: 'living' | 'total';
+  /** Plat recording status per subdivision slug, shown in the build tab. */
+  platStatus?: Record<string, { es: string; en: string }>;
   /** Full pro forma cost lines (private; from FEREST's bank budget). */
   costModel?: CostModel;
 }

@@ -77,6 +77,7 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
         from={Number.isFinite(from) ? from : null}
         pricing={pricing}
         builds={builds}
+        platStatus={partner.numbers?.platStatus ?? {}}
         model={partner.numbers?.costModel ?? null}
         market={{ comps: market?.comps ?? [], source: market?.source ?? '', updatedAt: market?.updatedAt ?? null, notes: market?.notes ?? {} }}
         marketRefs={projects.flatMap((p) => {

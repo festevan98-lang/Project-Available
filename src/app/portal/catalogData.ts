@@ -32,6 +32,8 @@ export interface AppHome {
   retail: number | null;
   price: number | null;
   rate: Rate | null;
+  /** Area the rate is priced on; total (under roof) unless set. */
+  rateBasis?: 'living' | 'total';
   preliminary: boolean;
 }
 

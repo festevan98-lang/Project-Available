@@ -13,7 +13,7 @@ export default function LabLoginForm({ partner, labels }: { partner: string; lab
       const res = await fetch('/api/lab/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        window.location.href = `/lab/${data.partner || partner}/panel`;
+        window.location.href = typeof data.redirect === 'string' && data.redirect.startsWith('/lab/i/') ? data.redirect : `/lab/${data.partner || partner}/panel`;
         return;
       }
       setState('bad');

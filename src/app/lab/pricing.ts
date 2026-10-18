@@ -3,7 +3,7 @@
 import type { ClientPricing } from '@/lib/lab/types';
 import type { AppProject } from '../portal/catalogData';
 
-type Priced = { retail: number | null; price: number | null; rate: { retail: number; price: number } | null; sqft?: number | null; totalSqft?: number | null };
+type Priced = { retail: number | null; price: number | null; rate: { retail: number; price: number } | null; sqft?: number | null; totalSqft?: number | null; rateBasis?: 'living' | 'total' };
 
 /** Price shown to clients for one item under the partner's pricing choice. */
 export function clientPrice<X extends Priced>(x: X, pricing: ClientPricing): X {
@@ -11,7 +11,7 @@ export function clientPrice<X extends Priced>(x: X, pricing: ClientPricing): X {
   if (pricing.mode === 'list') return { ...x, price: x.retail ?? x.price, rate: x.rate ? { ...x.rate, price: x.rate.retail } : null };
   const f = 1 + Math.max(0, pricing.markupPct) / 100;
   // With a per-sq-ft rate, price = rounded rate x sq ft so the client's breakdown multiplies out exactly.
-  const area = x.totalSqft ?? x.sqft ?? null;
+  const area = x.rateBasis === 'living' ? x.sqft ?? null : x.totalSqft ?? x.sqft ?? null;
   if (x.rate && area) {
     const rate = Math.round(x.rate.price * f * 100) / 100;
     return { ...x, price: Math.round(rate * area), rate: { ...x.rate, price: rate } };

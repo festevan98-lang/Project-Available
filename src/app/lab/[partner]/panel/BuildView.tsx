@@ -15,12 +15,13 @@ const TONE: Record<StageStatus, { bg: string; fg: string }> = {
 };
 const STATUS_KEY: Record<StageStatus, PanelKey> = { pending: 'bsPending', scheduled: 'bsScheduled', passed: 'bsPassed', failed: 'bsFailed' };
 
-export default function BuildView({ lang, partner, communities, builds: initial, isOwner }: {
+export default function BuildView({ lang, partner, communities, builds: initial, isOwner, platStatus }: {
   lang: Lang;
   partner: string;
   communities: { slug: string; name: string }[];
   builds: Build[];
   isOwner: boolean;
+  platStatus: Record<string, { es: string; en: string }>;
 }) {
   const [builds, setBuilds] = useState(initial);
   const [jur, setJur] = useState(JURISDICTIONS[0].key);
@@ -53,6 +54,20 @@ export default function BuildView({ lang, partner, communities, builds: initial,
     <div className="fade">
       <h2 className="serif" style={{ fontSize: 30, margin: '24px 0 6px' }}>{P(lang, 'bTitle')}</h2>
       <p style={{ fontSize: 15, color: T.muted, lineHeight: 1.55, margin: 0 }}>{P(lang, 'bLead')}</p>
+
+      {Object.keys(platStatus).length > 0 && (
+        <>
+          <div className="kicker" style={{ marginTop: 22 }}>{P(lang, 'platTitle')}</div>
+          <div className="card" style={{ marginTop: 8, overflow: 'hidden' }}>
+            {communities.filter((c) => platStatus[c.slug]).map((c, i) => (
+              <div key={c.slug} style={{ padding: '12px 16px', borderTop: i ? `1px solid ${T.line}` : 'none', fontSize: 14, lineHeight: 1.5 }}>
+                <b>{c.name}</b>
+                <span style={{ display: 'block', color: T.muted }}>{platStatus[c.slug][lang]}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="kicker" style={{ marginTop: 22 }}>{P(lang, 'bHomes')}</div>
       {builds.length === 0 && <div className="card" style={{ marginTop: 8, padding: 16, fontSize: 14, color: T.muted }}>{P(lang, 'bNone')}</div>}

@@ -51,7 +51,7 @@ const dict = {
     en: '{partner} and FEREST Development use your data only to answer and follow up on your request. We never sell or share it. You can ask us to delete it at any time over WhatsApp.',
   },
   partnerLogin: { es: 'Acceso para socios', en: 'Partner sign-in' },
-  partnerLoginShort: { es: 'Socios', en: 'Partners' },
+  partnerLoginShort: { es: 'Acceso', en: 'Sign in' },
 
   // public funnel
   heroCta: { es: 'Recibir mi plan en 2 minutos', en: 'Get my plan in 2 minutes' },
@@ -108,8 +108,8 @@ const dict = {
   faq4a: { es: 'FEREST, con un ingeniero civil con licencia en Texas. Cada etapa pasa la inspección de la ciudad y su asesor le comparte el avance.', en: 'FEREST, led by a Texas-licensed civil engineer. Each stage passes city inspection and your advisor shares the progress with you.' },
 
   // login
-  loginTitle: { es: 'Acceso para socios', en: 'Partner sign-in' },
-  loginBody: { es: 'Ingrese su código para abrir su panel.', en: 'Enter your code to open your panel.' },
+  loginTitle: { es: 'Acceso privado', en: 'Private access' },
+  loginBody: { es: 'Ingrese el código que recibió.', en: 'Enter the code you received.' },
   code: { es: 'Código de acceso', en: 'Access code' },
   codeBad: { es: 'Ese código no funcionó.', en: "That code didn't work." },
   enter: { es: 'Entrar', en: 'Sign in' },
@@ -186,6 +186,7 @@ const dict = {
   lotRow: { es: 'Lote {n}: {sqft} ft² de terreno × {rate}', en: 'Lot {n}: {sqft} sq ft of land × {rate}' },
   lotFixed: { es: 'Lote {n} (precio del lote)', en: 'Lot {n} (lot price)' },
   buildRow: { es: 'Construcción: {sqft} ft² totales × {rate}', en: 'Build: {sqft} total sq ft × {rate}' },
+  buildRowLiving: { es: 'Construcción: {sqft} ft² habitables × {rate}', en: 'Build: {sqft} living sq ft × {rate}' },
   total: { es: 'Total', en: 'Total' },
   perLiving: { es: '{ft}/ft² habitable · {m2}/m²', en: '{ft}/living sq ft · {m2}/m²' },
   areaNote: { es: 'La construcción se cotiza sobre el área total techada (incluye cochera, porche y patio). Los bancos valúan sobre el área habitable ({living} ft²).', en: 'Building is priced on total area under roof (garage, porch and patio included). Banks appraise the living area ({living} sq ft).' },

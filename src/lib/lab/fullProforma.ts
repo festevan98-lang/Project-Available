@@ -77,8 +77,10 @@ export interface Home {
   living: number;
   total: number;
   lot: { list: number; partner: number };
-  /** Contract price per total sq ft. */
+  /** Contract price per sq ft of the basis area. */
   rate: { list: number; partner: number };
+  /** Area the contract rate applies to (living or total under roof). */
+  rateBasis: 'living' | 'total';
 }
 
 export interface Row {
@@ -98,6 +100,8 @@ export interface Row {
 
 export interface Result {
   partnerTier: boolean;
+  /** Contract shown split into cost lines plus builder margin. */
+  showSplit: boolean;
   lotPrice: number;
   contract: number;
   /** Contract cost lines at cost, before builder margin. */
@@ -166,7 +170,8 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   const units = Math.max(1, Math.floor(inp.units || 1));
   const partnerTier = units >= volumeMin;
   const lotPrice = partnerTier ? home.lot.partner : home.lot.list;
-  const contract = r(home.total * (partnerTier ? home.rate.partner : home.rate.list));
+  const priceArea = home.rateBasis === 'living' ? home.living : home.total;
+  const contract = r(priceArea * (partnerTier ? home.rate.partner : home.rate.list));
   const months = Math.max(1, inp.months);
   const renting = inp.exit === 'rent';
   const sale = renting ? 0 : inp.salePrice;
@@ -186,7 +191,9 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   const contractLines = model.lines.filter((l) => l.inContract);
   const contractCost = contractLines.reduce((s, l) => s + r(lineValue(l, l.amount, home, ctx)), 0);
   const builderMargin = contract - contractCost;
-  if (model.showBuilderMargin) {
+  // The cost-and-margin breakdown is shown only when the builder margin is positive.
+  const showSplit = model.showBuilderMargin && builderMargin > 0;
+  if (showSplit) {
     for (const l of contractLines) push(l, lineValue(l, l.amount, home, ctx));
     rows.push({
       key: 'builderMargin', section: 'hard', inContract: true, editable: false, basis: 'fixed', amount: builderMargin, value: builderMargin, margin: true,
@@ -194,7 +201,7 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
     });
   } else {
     rows.push({
-      key: 'contract', section: 'hard', inContract: true, editable: false, basis: 'perTotal', amount: partnerTier ? home.rate.partner : home.rate.list, value: contract,
+      key: 'contract', section: 'hard', inContract: true, editable: false, basis: home.rateBasis === 'living' ? 'perLiving' : 'perTotal', amount: partnerTier ? home.rate.partner : home.rate.list, value: contract,
       label: { es: 'Contrato llave en mano FEREST', en: 'FEREST turnkey contract' },
     });
   }
@@ -261,7 +268,7 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   });
 
   return {
-    partnerTier, lotPrice, contract, contractCost, builderMargin, rows, bySection, loan, cash, cost, sale, profit,
+    partnerTier, showSplit, lotPrice, contract, contractCost, builderMargin, rows, bySection, loan, cash, cost, sale, profit,
     margin: sale > 0 ? profit / sale : 0,
     roi, roiCash,
     annualRoi: roiCash * 12 / months,

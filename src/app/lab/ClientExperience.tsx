@@ -47,9 +47,9 @@ function resolve(projects: AppProject[], pick: Pick, lang: Lang): Resolved | nul
       : { label: L(lang, 'lotFixed', { n: lot.n }), value: lot.price, how: null });
   }
   if (home) {
-    const sq = home.totalSqft ?? home.sqft;
+    const sq = home.rateBasis === 'living' ? home.sqft : home.totalSqft ?? home.sqft;
     rows.push(home.rate && sq
-      ? { label: L(lang, 'buildRow', { sqft: n(sq), rate: rate(home.rate.price) }), value: home.price, how: `${n(sq)} ft² × ${rate(home.rate.price)} = ${home.price != null ? money(home.price) : '—'}` }
+      ? { label: L(lang, home.rateBasis === 'living' ? 'buildRowLiving' : 'buildRow', { sqft: n(sq), rate: rate(home.rate.price) }), value: home.price, how: `${n(sq)} ft² × ${rate(home.rate.price)} = ${home.price != null ? money(home.price) : '—'}` }
       : { label: home.name, value: home.price, how: null });
   }
   const total = rows.every((r) => r.value != null) ? rows.reduce((s, r) => s + (r.value ?? 0), 0) : null;

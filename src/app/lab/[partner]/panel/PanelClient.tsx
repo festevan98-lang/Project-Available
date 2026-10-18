@@ -59,7 +59,7 @@ function CopyButton({ text, lang }: { text: string; lang: Lang }) {
   );
 }
 
-export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing, model, market, marketRefs, builds }: {
+export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing, model, market, marketRefs, builds, platStatus }: {
   lang: Lang;
   partner: { slug: string; name: string; contactName: string; whatsapp: string };
   first: string;
@@ -77,6 +77,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   market: { comps: Comp[]; source: string; updatedAt: string | null; notes: Record<string, string> };
   marketRefs: MarketRef[];
   builds: Build[];
+  platStatus: Record<string, { es: string; en: string }>;
 }) {
   const [tab, setTab] = useState<Tab>('numbers');
   const [savedPricing, setSavedPricing] = useState(pricing);
@@ -123,7 +124,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   } else if (current === 'market') {
     body = <MarketView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name, city: p.place }))} comps={market.comps} source={market.source} updatedAt={market.updatedAt} isOwner={isOwner} notes={market.notes} />;
   } else if (current === 'build') {
-    body = <BuildView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name }))} builds={builds} isOwner={isOwner} />;
+    body = <BuildView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name }))} builds={builds} isOwner={isOwner} platStatus={platStatus} />;
   } else if (current === 'clients') {
     body = (
       <div className="fade">

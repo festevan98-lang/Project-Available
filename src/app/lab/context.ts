@@ -1,7 +1,7 @@
 import { getCatalog } from '@/lib/portal/store';
 import type { Lang } from '@/lib/portal/types';
 import { getPartner } from '@/lib/lab/store';
-import type { LabPartner, LabPlan } from '@/lib/lab/types';
+import type { LabNumbers, LabPartner, LabPlan } from '@/lib/lab/types';
 import { buildAppProjects, type AppHome, type AppImage, type AppProject } from '../portal/catalogData';
 import { area, t } from '../portal/i18n';
 
@@ -14,8 +14,10 @@ export interface PartnerContext {
   projects: AppProject[];
 }
 
-function planHome(plan: LabPlan, project: AppProject, lang: Lang, img: (src: string) => string): AppHome {
-  const rate = project.homes.find((h) => h.rate)?.rate ?? null;
+function planHome(plan: LabPlan, project: AppProject, lang: Lang, img: (src: string) => string, numbers?: LabNumbers): AppHome {
+  const rate = numbers?.buildRate ?? project.homes.find((h) => h.rate)?.rate ?? null;
+  const basis = numbers?.buildBasis ?? 'total';
+  const priceArea = basis === 'living' ? plan.living : plan.total;
   return {
     id: plan.id,
     name: plan.name,
@@ -27,9 +29,10 @@ function planHome(plan: LabPlan, project: AppProject, lang: Lang, img: (src: str
     images: plan.images?.length ? plan.images.map((src) => ({ src: img(src), caption: null })) : [project.image],
     sqft: plan.living,
     totalSqft: plan.total,
-    retail: rate ? Math.round(plan.total * rate.retail) : null,
-    price: rate ? Math.round(plan.total * rate.price) : null,
+    retail: rate ? Math.round(priceArea * rate.retail) : null,
+    price: rate ? Math.round(priceArea * rate.price) : null,
     rate,
+    rateBasis: basis,
     preliminary: !!plan.review,
   };
 }
@@ -67,7 +70,7 @@ export async function loadPartner(slug: string, lang: Lang, withProjects = true)
   const plans = partner.numbers?.plans ?? [];
   const projects = base.map((p) => {
     const here = plans.filter((x) => x.communities.includes(p.slug));
-    return here.length ? { ...p, homes: here.map((x) => planHome(x, p, lang, img)) } : p;
+    return here.length ? { ...p, homes: here.map((x) => planHome(x, p, lang, img, partner.numbers)) } : p;
   });
   return { partner, brand, hero, projects };
 }

@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { ADMIN_COOKIE_NAME, expectedSessionValue } from '@/lib/admin/session';
 
-// On a partner-site deployment only the partner site, its APIs, catalog photos and static files are served.
-const PARTNER_SITE_PATHS = /^\/(lab(\/|$)|api\/lab\/|api\/portal\/file$)|\.[a-z0-9]{2,5}$/i;
+// On a partner-site deployment only that partner's pages, client links, lab APIs and public static files are served.
+const SHARED_PATHS = /^\/(lab\/i\/|api\/lab\/)/;
+const STATIC_FILES = /^\/((plats|models|images)\/[^?]+|[^/]+\.(png|jpe?g|webp|svg|ico|txt|xml|webmanifest))$/i;
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -11,7 +12,8 @@ export async function middleware(request: NextRequest) {
   const home = process.env.LAB_HOME;
   if (home && /^\/lab\/[a-z0-9-]+$/.test(home)) {
     if (path === '/') return NextResponse.rewrite(new URL(home, request.url));
-    return PARTNER_SITE_PATHS.test(path) ? NextResponse.next() : NextResponse.redirect(new URL('/', request.url));
+    const allowed = path === home || path.startsWith(home + '/') || SHARED_PATHS.test(path) || STATIC_FILES.test(path);
+    return allowed ? NextResponse.next() : NextResponse.redirect(new URL('/', request.url));
   }
 
   // Portal: redirect when no session cookie is present. Real verification

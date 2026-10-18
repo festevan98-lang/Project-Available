@@ -25,19 +25,21 @@ const SECTION_KEY: Record<Section, PanelKey> = { acq: 's2', design: 's3', hard: 
 function Cell({ value, onChange, prefix, suffix, step = 1, label, wide }: {
   value: number; onChange: (v: number) => void; prefix?: string; suffix?: string; step?: number; label: string; wide?: boolean;
 }) {
+  const [text, setText] = useState<string | null>(null);
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: GOLD_BG, border: `1px solid ${GOLD_LINE}`, borderRadius: 8, padding: '0 8px', height: 34 }}>
+    <span className="lx-cell" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: GOLD_BG, border: `1px solid ${GOLD_LINE}`, borderRadius: 8, padding: '0 8px', height: 34 }}>
       {prefix && <span style={{ color: T.gold, fontSize: 14 }}>{prefix}</span>}
-      <input type="number" inputMode="decimal" aria-label={label} value={Number.isFinite(value) ? value : 0} step={step} min={0}
-        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+      <input type="number" inputMode="decimal" aria-label={label} value={text ?? (Number.isFinite(value) ? value : 0)} step={step} min={0}
+        onChange={(e) => { setText(e.target.value); const v = Number(e.target.value); if (e.target.value !== '' && Number.isFinite(v)) onChange(v); }}
+        onBlur={() => setText(null)}
         style={{ width: wide ? 96 : 58, border: 'none', background: 'transparent', padding: 0, fontSize: 15, fontWeight: 600, textAlign: 'right', color: T.ink, outline: 'none' }} />
       {suffix && <span style={{ color: T.gold, fontSize: 14 }}>{suffix}</span>}
     </span>
   );
 }
 
-const unitFor = (b: Basis): { prefix?: string; suffix?: string; step: number; wide?: boolean } =>
-  b === 'pctSale' || b === 'pctLoan' ? { suffix: '%', step: 0.5 } : b === 'perMonth' ? { prefix: '$', suffix: '/mes', step: 10 } : { prefix: '$', step: 50, wide: true };
+const unitFor = (b: Basis, lang: Lang): { prefix?: string; suffix?: string; step: number; wide?: boolean } =>
+  b === 'pctSale' || b === 'pctLoan' ? { suffix: '%', step: 0.5 } : b === 'perMonth' ? { prefix: '$', suffix: lang === 'es' ? '/mes' : '/mo', step: 10 } : { prefix: '$', step: 50, wide: true };
 
 export default function Numbers({ lang, projects, volumeMin, model, owner, market }: {
   lang: Lang;
@@ -66,7 +68,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
   const [ratePct, setRatePct] = useState(9.5);
   const [overrides, setOverrides] = useState<Record<string, number>>({});
   const [saleOverride, setSaleOverride] = useState<Record<string, number>>({});
-  const [rentOverride, setRentOverride] = useState<number | null>(null);
+  const [rentOverride, setRentOverride] = useState<Record<string, number>>({});
   const [closed, setClosed] = useState<Partial<Record<Section, boolean>>>({});
   const [openNote, setOpenNote] = useState<string | null>(null);
   const [ownerCost, setOwnerCost] = useState(owner?.buildCost ?? 0);
@@ -92,13 +94,14 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
   const marketPrice = mkt ? Math.round(mkt.perLiving * homeIn.living) : project.appraisal ? Math.round(project.appraisal.perSqft * homeIn.living) : null;
   const saleKey = `${exit}:${project.slug}:${lot.key}:${home.id}`;
   const salePrice = saleOverride[saleKey] ?? (exit === 'market' ? marketPrice ?? listPrice : listPrice);
-  const rent = rentOverride ?? facts.rentBase;
-  const res = fullProforma(model, homeIn, { units, exit, salePrice, rent, months, buildMonths, loanPct, ratePct, overrides }, facts, volumeMin);
+  const rent = rentOverride[project.slug] ?? facts.rentBase;
+  const exitOverrides = Object.fromEntries(Object.entries(overrides).filter(([k]) => k.startsWith(`${exit}:`)).map(([k, v]) => [k.slice(exit.length + 1), v]));
+  const res = fullProforma(model, homeIn, { units, exit, salePrice, rent, months, buildMonths, loanPct, ratePct, overrides: exitOverrides }, facts, volumeMin);
   const lotCost = ownerLot[project.slug] || null;
   const ferest = owner ? { build: res.contract - Math.round(homeIn.total * ownerCost), lot: lotCost != null ? res.lotPrice - lotCost : null } : null;
 
   const contractRows = res.rows.filter((r) => r.inContract);
-  const setOverride = (key: string, v: number) => setOverrides((s) => ({ ...s, [key]: v }));
+  const setOverride = (key: string, v: number) => setOverrides((s) => ({ ...s, [`${exit}:${key}`]: v }));
 
   const basisHint = (r: Row): string | null => {
     if (r.margin) return null;
@@ -110,7 +113,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
   };
 
   const row = (r: Row, i: number) => {
-    const u = unitFor(r.basis);
+    const u = unitFor(r.basis, lang);
     const editable = r.editable && !r.margin;
     return (
       <div key={r.key} style={{ padding: '10px 0', borderTop: i ? `1px solid ${T.line}` : 'none' }}>
@@ -202,7 +205,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginTop: 16 }}>
         <label style={{ display: 'grid', gap: 4, fontSize: 13, fontWeight: 600, color: T.muted }}>{P(lang, 'community')}
-          <select style={select} value={project.slug} onChange={(e) => { setSlug(e.target.value); setLotKey(''); setHomeId(''); }}>
+          <select style={select} value={project.slug} onChange={(e) => { setSlug(e.target.value); setLotKey(''); setHomeId(''); setTryRate(null); }}>
             {usable.map((p) => <option key={p.slug} value={p.slug}>{p.name}</option>)}
           </select>
         </label>
@@ -226,7 +229,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
             {homes.map((h) => {
               const on = h.id === home.id;
               return (
-                <button key={h.id} type="button" onClick={() => setHomeId(h.id)} aria-pressed={on}
+                <button key={h.id} type="button" onClick={() => { setHomeId(h.id); setTryRate(null); }} aria-pressed={on}
                   style={{ textAlign: 'left', fontFamily: 'inherit', color: T.ink, cursor: 'pointer', borderRadius: 14, padding: 0, overflow: 'hidden', background: '#fff', border: `2px solid ${on ? T.accent : T.line}` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={h.images[0]?.src} alt="" style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', display: 'block' }} />
@@ -267,7 +270,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
       <div className="card" style={{ marginTop: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 14, fontWeight: 600 }}>{P(lang, exit === 'rent' ? 'i_rent' : 'i_salePrice')}</span>
         {exit === 'rent'
-          ? <Cell label={P(lang, 'i_rent')} value={rent} onChange={(v) => setRentOverride(v)} prefix="$" step={50} wide />
+          ? <Cell label={P(lang, 'i_rent')} value={rent} onChange={(v) => setRentOverride((s) => ({ ...s, [project.slug]: v }))} prefix="$" step={50} wide />
           : <Cell label={P(lang, 'i_salePrice')} value={salePrice} onChange={(v) => setSaleOverride((s) => ({ ...s, [saleKey]: v }))} prefix="$" step={1000} wide />}
         <span style={{ flexBasis: '100%', fontSize: 12, color: T.muted, lineHeight: 1.5 }}>
           {exit === 'clients' && P(lang, 'listHint', { v: money(listPrice) })}
@@ -351,7 +354,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
         <div className="serif" style={{ fontSize: 20 }}>{P(lang, 'whereTitle')}</div>
         <ul style={{ margin: '8px 0 0', paddingLeft: 18, display: 'grid', gap: 6, fontSize: 14, lineHeight: 1.5 }}>
           <li>{P(lang, 'where1', { spread: money(listPrice - res.lotPrice - res.contract), total: money((listPrice - res.lotPrice - res.contract) * res.order.units), n: res.order.units })}</li>
-          <li>{P(lang, 'where2')}</li>
+          <li>{P(lang, 'where2', { profit: money(res.profit) })}</li>
           <li style={{ color: T.muted }}>{P(lang, 'where3')}</li>
         </ul>
       </div>
@@ -362,7 +365,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 10 }}>
             <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerCost')}<Cell label={P(lang, 'ownerCost')} value={ownerCost} onChange={setOwnerCost} prefix="$" step={0.5} /></label>
             <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerLot')}<Cell label={P(lang, 'ownerLot')} value={ownerLot[project.slug] ?? 0} onChange={(v) => setOwnerLot((s) => ({ ...s, [project.slug]: v }))} prefix="$" step={500} wide /></label>
-            <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerRate')}<Cell label={P(lang, 'ownerRate')} value={tryRate ?? (home.rate?.price ?? 0)} onChange={(v) => setTryRate(v)} prefix="$" step={1} /></label>
+            <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerRate')}<Cell label={P(lang, 'ownerRate')} value={homeIn.rate.partner} onChange={(v) => setTryRate(v)} prefix="$" step={1} /></label>
           </div>
           <div style={{ fontSize: 12, color: T.muted, marginTop: 6 }}>{owner.buildCostNote}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginTop: 10 }}>

@@ -120,8 +120,8 @@ const dict = {
   coc: { es: 'Retorno sobre efectivo', en: 'Cash-on-cash' },
 
   whereTitle: { es: '¿Dónde gana usted?', en: 'Where do you make money?' },
-  where1: { es: 'Diferencia entre precio de lista y su precio de socio: {spread} por casa ({total} en {n} casas).', en: 'Gap between list price and your partner price: {spread} per home ({total} across {n} homes).' },
-  where2: { es: 'Ese es su margen si sus clientes compran a precio de lista. Ojo: hoy la lista está por arriba de las ventas cerradas de la zona (vea Mercado), así que esos clientes pagan de contado y por el servicio llave en mano.', en: 'That is your margin if your clients buy at list. Note: list is above recent closed sales nearby (see Market), so those clients pay cash and for the turnkey service.' },
+  where1: { es: 'Diferencia bruta entre precio de lista y su precio de socio: {spread} por casa ({total} en {n} casas).', en: 'Gross gap between list price and your partner price: {spread} per home ({total} across {n} homes).' },
+  where2: { es: 'Es una diferencia bruta, antes de cierre, predial, HOA y costos de venta. Con los supuestos de arriba, su utilidad estimada es {profit} por casa.', en: 'It is a gross gap, before closing, property tax, HOA and selling costs. With the assumptions above, your estimated profit is {profit} per home.' },
   where3: { es: 'En el mercado local manda el avalúo: compárelo siempre con su costo total antes de comprometerse.', en: 'On the local market the appraisal rules: always compare it with your total cost before committing.' },
   disclaimer: {
     es: 'Cifras estimadas para planear, no una oferta ni asesoría fiscal. Precios sujetos a contrato. Confirme impuestos y estructura con su contador.',
@@ -238,10 +238,7 @@ const dict = {
     en: 'Buy in volume ({min}+ homes) at partner prices and sell to your clients at list. FEREST designs, builds and delivers.',
   },
   g2: { es: 'Siguiente: codesarrollo', en: 'Next: co-development' },
-  g2d: {
-    es: 'Aporta capital a una fase completa. FEREST hace la ingeniería y la obra; la utilidad del proyecto se reparte según contrato.',
-    en: 'Fund a full phase. FEREST does the engineering and construction; project profit is split by contract.',
-  },
+  g2d: { es: 'Aporta capital a una fase completa. FEREST hace la ingeniería y la obra; la utilidad del proyecto se reparte según contrato. Aportar capital por una parte de la utilidad puede considerarse una oferta de valores: requiere una estructura revisada por abogados antes de aceptar capital de terceros o de sus clientes.', en: 'Fund a full phase. FEREST does the engineering and construction; project profit is split by contract. Funding for a share of profit can be a securities offering: it needs a structure reviewed by counsel before taking money from others or your clients.' },
   g3: { es: 'Después: su propia constructora', en: 'Later: your own builder' },
   g3d: {
     es: 'Su empresa en Texas construye con planos e ingeniería de M2 Engineering, y con los proveedores y la supervisión de FEREST. Ahí se queda con el margen de la obra.',

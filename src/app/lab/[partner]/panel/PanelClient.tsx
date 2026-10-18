@@ -6,6 +6,7 @@ import type { AppProject } from '../../../portal/catalogData';
 import { money } from '../../../portal/i18n';
 import { L } from '../../copy';
 import { P, type PanelKey } from '../../panelCopy';
+import { clientProjects } from '../../pricing';
 import { T } from '../../ui';
 import type { ClientPricing } from '@/lib/lab/types';
 import ClientPricingCard from './ClientPricingCard';
@@ -38,6 +39,12 @@ export interface PanelLead {
 }
 
 type Tab = 'numbers' | 'market' | 'build' | 'clients' | 'marketing' | 'growth';
+
+/** Digits for wa.me: 10-digit local numbers get Mexico's country code. */
+const waNumber = (phone: string) => {
+  const d = phone.replace(/\D/g, '');
+  return d.length === 10 ? `52${d}` : d;
+};
 
 const when = (iso: string, lang: Lang) =>
   new Date(iso).toLocaleString(lang === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -72,6 +79,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   builds: Build[];
 }) {
   const [tab, setTab] = useState<Tab>('numbers');
+  const [savedPricing, setSavedPricing] = useState(pricing);
   const [links, setLinks] = useState(initialLinks);
   const [label, setLabel] = useState('');
   const [busy, setBusy] = useState(false);
@@ -97,23 +105,29 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
 
   const linkUrl = (id: string) => `${origin}/lab/i/${id}`;
   const waSend = (url: string) => `https://wa.me/?text=${encodeURIComponent(`${L(lang, 'waInvite')} ${url}`)}`;
-  const fromText = from != null ? money(from) : '';
+  // Lowest client price (cheapest lot + plan) under the saved pricing, for the marketing messages.
+  const liveFrom = Math.min(...clientProjects(projects, savedPricing).flatMap((p) => {
+    const lot = Math.min(...p.lots.map((l) => l.price ?? Infinity));
+    return p.homes.map((h) => (h.price != null && Number.isFinite(lot) ? h.price + lot : Infinity));
+  }));
+  const fromText = Number.isFinite(liveFrom) ? money(liveFrom) : from != null ? money(from) : '';
 
   const tabs: [Tab, PanelKey][] = [['numbers', 'tNumbers'], ['market', 'tMarket'], ['build', 'tBuild'], ['clients', 'tClients'], ['marketing', 'tMarketing'], ['growth', 'tGrowth']];
 
+  const renderTab = (current: Tab): React.ReactNode => {
   let body: React.ReactNode;
-  if (tab === 'numbers') {
+  if (current === 'numbers') {
     body = model
       ? <Numbers lang={lang} projects={projects} volumeMin={volumeMin} model={model} owner={owner} market={marketRefs} />
       : <p style={{ marginTop: 24, color: T.muted }}>{P(lang, 'noModel')}</p>;
-  } else if (tab === 'market') {
+  } else if (current === 'market') {
     body = <MarketView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name, city: p.place }))} comps={market.comps} source={market.source} updatedAt={market.updatedAt} isOwner={isOwner} notes={market.notes} />;
-  } else if (tab === 'build') {
+  } else if (current === 'build') {
     body = <BuildView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name }))} builds={builds} isOwner={isOwner} />;
-  } else if (tab === 'clients') {
+  } else if (current === 'clients') {
     body = (
       <div className="fade">
-        <ClientPricingCard lang={lang} partner={partner.slug} projects={projects} initial={pricing} />
+        <ClientPricingCard lang={lang} partner={partner.slug} projects={projects} initial={savedPricing} onSaved={setSavedPricing} />
         <form onSubmit={create} className="card" style={{ marginTop: 24, padding: 18, display: 'grid', gap: 10 }}>
           <div className="serif" style={{ fontSize: 22 }}>{L(lang, 'sendTitle')}</div>
           <p style={{ margin: 0, fontSize: 14, color: T.muted, lineHeight: 1.5 }}>{L(lang, 'sendHint')}</p>
@@ -168,7 +182,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
                 <span style={{ fontSize: 12, color: T.muted, whiteSpace: 'nowrap' }}>{L(lang, d.kind === 'access' ? 'kAccess' : d.kind === 'visit' ? 'kVisit' : 'kInterest')} · {when(d.createdAt, lang)}</span>
               </div>
               <div style={{ fontSize: 13, color: T.muted, marginTop: 4, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {d.phone && <a href={`https://wa.me/${d.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: T.accent, fontWeight: 600 }}>{d.phone}</a>}
+                {d.phone && <a href={`https://wa.me/${waNumber(d.phone)}`} target="_blank" rel="noopener noreferrer" style={{ color: T.accent, fontWeight: 600 }}>{d.phone}</a>}
                 {d.email && <a href={`mailto:${d.email}`} style={{ color: T.accent }}>{d.email}</a>}
                 {d.interest.length > 0 && <span>{d.interest.join(', ')}</span>}
               </div>
@@ -178,7 +192,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
         </div>
       </div>
     );
-  } else if (tab === 'marketing') {
+  } else if (current === 'marketing') {
     const vars = { name: lang === 'es' ? '[nombre]' : '[name]', from: fromText, site, partner: partner.name };
     const messages: [PanelKey, PanelKey][] = [['m1Title', 'm1Body'], ['m2Title', 'm2Body'], ['m3Title', 'm3Body']];
     body = (
@@ -259,6 +273,9 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
     );
   }
 
+  return body;
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
@@ -271,7 +288,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
           <a className="btn btn-ghost" style={{ minHeight: 40, fontSize: 14 }} href={`/lab/${partner.slug}`} target="_blank" rel="noopener noreferrer">{L(lang, 'publicPage')}</a>
         </div>
       </div>
-      <nav aria-label={L(lang, 'panelTitle')} style={{ position: 'sticky', top: 55, zIndex: 20, background: '#fff', borderBottom: `1px solid ${T.line}`, marginTop: 16, display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
+      <nav aria-label={L(lang, 'panelTitle')} style={{ position: 'sticky', top: 61, zIndex: 20, background: '#fff', borderBottom: `1px solid ${T.line}`, marginTop: 16, display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
         {tabs.map(([t, k]) => (
           <button key={t} type="button" onClick={() => setTab(t)} aria-current={tab === t ? 'page' : undefined}
             style={{ flexShrink: 0, padding: '12px 10px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === t ? T.accent : 'transparent'}`, fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: tab === t ? T.ink : T.muted, cursor: 'pointer' }}>
@@ -279,7 +296,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
           </button>
         ))}
       </nav>
-      {body}
+      {tabs.map(([t]) => <div key={t} hidden={tab !== t}>{renderTab(t)}</div>)}
     </div>
   );
 }

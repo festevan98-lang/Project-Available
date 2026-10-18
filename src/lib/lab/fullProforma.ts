@@ -127,13 +127,25 @@ export const AVG_DRAW = 0.6;
 
 const r = (n: number) => Math.round(n);
 
+/** Published TDI 2026 basic premiums up to $100,000 (policy amount, premium), interpolated between points. */
+const TITLE_POINTS: [number, number][] = [[50000, 465], [60000, 529], [75000, 625], [100000, 780]];
+const TITLE_MIN = 308;
+
 /**
- * Texas owner's title policy basic premium (TDI rate schedule effective Mar 1, 2026) for policies over $100,000:
- * $780 plus $4.94 per $1,000 above $100,000. Source: tdi.texas.gov/title/documents/titlerates2026.pdf
+ * Texas title policy basic premium (TDI rate schedule effective Mar 1, 2026). Over $100,000:
+ * $780 plus $4.94 per $1,000 above $100,000. At or below, the published table points, interpolated,
+ * with the $308 minimum. Source: tdi.texas.gov/title/documents/titlerates2026.pdf
  */
 export function titlePremium(amount: number): number {
   if (amount <= 0) return 0;
-  return amount > 100000 ? Math.round((amount - 100000) * 0.00494) + 780 : Math.round(780 * amount / 100000);
+  if (amount > 100000) return Math.round((amount - 100000) * 0.00494) + 780;
+  if (amount <= TITLE_POINTS[0][0]) return Math.max(TITLE_MIN, Math.round(TITLE_POINTS[0][1] * amount / TITLE_POINTS[0][0]));
+  for (let i = 1; i < TITLE_POINTS.length; i++) {
+    const [a1, p1] = TITLE_POINTS[i];
+    const [a0, p0] = TITLE_POINTS[i - 1];
+    if (amount <= a1) return Math.round(p0 + (p1 - p0) * (amount - a0) / (a1 - a0));
+  }
+  return 780;
 }
 
 function lineValue(l: CostLine, amount: number, home: Home, ctx: { loan: number; sale: number; months: number; esc: number }): number {
@@ -195,9 +207,12 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   }
 
   // 5. Interest on a construction loan drawn in stages, then carried to sale.
+  // The lot share is funded in full at closing; the construction share is drawn as work advances.
   if (loan > 0) {
     const build = Math.min(months, Math.max(1, inp.buildMonths));
-    const interest = loan * inp.ratePct / 100 * (build * AVG_DRAW + Math.max(0, months - build)) / 12;
+    const lotLoan = Math.min(loan, lotPrice * Math.max(0, Math.min(90, inp.loanPct)) / 100);
+    const buildLoan = loan - lotLoan;
+    const interest = inp.ratePct / 100 / 12 * (lotLoan * months + buildLoan * (build * AVG_DRAW + Math.max(0, months - build)));
     rows.push({ key: 'interest', section: 'finance', label: { es: 'Intereses (obra + venta)', en: 'Interest (build + sale)' }, value: r(interest), basis: 'fixed', amount: inp.ratePct, editable: false, inContract: false });
   }
 
@@ -215,10 +230,15 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   const roi = cost > 0 ? profit / cost : 0;
   const roiCash = cash > 0 ? profit / cash : 0;
 
-  // Break-even sale price: every cost that does not scale with the price, over what is left after percent-of-sale costs.
+  // Break-even sale price: costs that do not move with the price, plus the percent-of-sale costs and the
+  // buyer's title premium, which do. Solved by a few fixed-point steps (the premium is nearly linear).
   const pctSale = model.lines.filter((l) => l.section === 'sale' && l.basis === 'pctSale').reduce((t, l) => t + amountOf(l), 0);
-  const fixedCost = cost - rows.filter((x) => x.section === 'sale' && x.basis === 'pctSale').reduce((t, x) => t + x.value, 0);
-  const breakEven = r(fixedCost / Math.max(0.01, 1 - pctSale / 100));
+  const priceLinked = rows.filter((x) => x.section === 'sale' && (x.basis === 'pctSale' || x.basis === 'titleOwner'));
+  const titleOn = priceLinked.some((x) => x.basis === 'titleOwner' && x.amount);
+  const base = cost - priceLinked.reduce((t, x) => t + x.value, 0);
+  let be = base / Math.max(0.01, 1 - pctSale / 100);
+  for (let i = 0; i < 6; i++) be = (base + (titleOn ? titlePremium(be) : 0)) / Math.max(0.01, 1 - pctSale / 100);
+  const breakEven = r(be);
 
   let rent: Result['rent'] = null;
   if (renting) {
@@ -232,8 +252,10 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   // Draw schedule: contract lines grouped by the draw they are paid in, scaled to the contract price.
   const scale = contractCost > 0 ? contract / contractCost : 1;
   let cumulative = 0;
-  const draws = model.draws.map((d) => {
-    const amount = r(contractLines.filter((l) => l.draw === d.n).reduce((t, l) => t + lineValue(l, l.amount, home, ctx), 0) * scale);
+  const draws = model.draws.map((d, i) => {
+    // The last draw takes the rounding remainder so the draws always add up to the contract.
+    const amount = i === model.draws.length - 1 ? contract - cumulative
+      : r(contractLines.filter((l) => l.draw === d.n).reduce((t, l) => t + lineValue(l, l.amount, home, ctx), 0) * scale);
     cumulative += amount;
     return { n: d.n, label: d.label, inspection: d.inspection, amount, cumulative, pct: contract ? cumulative / contract : 0 };
   });

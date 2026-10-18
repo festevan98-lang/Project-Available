@@ -23,6 +23,8 @@ export async function POST(request: Request) {
 
   const link = typeof b.linkId === 'string' ? await getLink(b.linkId) : null;
   if (link && (link.partner !== partner || link.revokedAt)) return NextResponse.json({ ok: false }, { status: 400 });
+  // Visit and interest requests only come from a live client link, with consent.
+  if (kind !== 'access' && (!link || b.consent !== true)) return NextResponse.json({ ok: false }, { status: 400 });
 
   const lead: LabLead = {
     id: newId(9),

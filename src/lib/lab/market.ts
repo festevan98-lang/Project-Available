@@ -22,7 +22,7 @@ export interface CommunityStats {
 export function statsFor(comps: Comp[], community: string): CommunityStats {
   const mine = comps.filter((c) => c.community === community);
   const homes = mine.filter((c) => c.kind === 'home' || c.kind === 'townhome');
-  const sold = homes.filter((c) => c.status === 'sold' && c.newConstruction !== false).map(perLiving).filter((x): x is number => x != null);
+  const sold = homes.filter((c) => c.status === 'sold' && c.newConstruction === true).map(perLiving).filter((x): x is number => x != null);
   const active = homes.filter((c) => c.status === 'active' || c.status === 'pending').map(perLiving).filter((x): x is number => x != null);
   const rents = mine.filter((c) => c.kind === 'rental').map((c) => c.price);
   const lots = mine.filter((c) => c.kind === 'lot' && c.lotSqft).map((c) => c.price / c.lotSqft!);
@@ -50,6 +50,9 @@ function splitCsv(line: string): string[] {
   out.push(cur);
   return out.map((s) => s.trim());
 }
+
+/** Only plain web links are kept, so an uploaded file cannot inject a script URL. */
+export const safeUrl = (u: string | undefined) => (u && /^https?:\/\//i.test(u.trim()) ? u.trim() : undefined);
 
 const num = (s: string | undefined) => {
   if (!s) return undefined;
@@ -80,11 +83,15 @@ export function parseCompsCsv(text: string, community: string, city: string): { 
     beds: col(/bed|rec[aá]maras/),
     bathsFull: col(/bath.*full|full bath|^baths?$|baños/),
     bathsHalf: col(/half/),
-    living: col(/sq ?ft|sqft|living|heated|square feet|area/, /lot|acre/),
+    living: (() => {
+      const not = /lot|acre|price|\$|\/|area code|market area|^area$/;
+      const a = col(/living|heated/, not);
+      return a >= 0 ? a : col(/^sq ?ft$|^sqft|square feet|sq ?ft (total|living)/, not);
+    })(),
     lot: col(/lot.*(sq|size|area)|lot sqft/),
     acres: col(/acre/),
     year: col(/year built|año/),
-    type: col(/property type|prop type|type|tipo/),
+    type: (() => { const t = col(/property type|prop type|tipo de propiedad/); return t >= 0 ? t : col(/type|tipo/, /sale type|listing type|transaction type/); })(),
     url: col(/url|link/),
   };
   const get = (cells: string[], i: number) => (i >= 0 ? cells[i] : undefined);
@@ -114,11 +121,11 @@ export function parseCompsCsv(text: string, community: string, city: string): { 
       date: get(c, ix.date) || get(c, ix.listDate) || undefined,
       beds: num(get(c, ix.beds)),
       baths: full != null ? full + half / 2 : undefined,
-      livingSqft: num(get(c, ix.living)),
+      livingSqft: (() => { const v = num(get(c, ix.living)); return v && v >= 300 && v <= 15000 ? v : undefined; })(),
       lotSqft: num(get(c, ix.lot)) ?? (acres ? Math.round(acres * 43560) : undefined),
       yearBuilt: year,
       newConstruction: year ? year >= new Date().getFullYear() - 2 : undefined,
-      sourceUrl: get(c, ix.url) || undefined,
+      sourceUrl: safeUrl(get(c, ix.url)),
       community,
     });
   }

@@ -1,9 +1,8 @@
-import { catalogImageUrl, getCatalog } from '@/lib/portal/store';
-import { signShare } from '@/lib/portal/share';
+import { getCatalog } from '@/lib/portal/store';
 import type { Lang } from '@/lib/portal/types';
 import { getPartner } from '@/lib/lab/store';
 import type { LabPartner, LabPlan } from '@/lib/lab/types';
-import { buildAppProjects, type AppHome, type AppProject } from '../portal/catalogData';
+import { buildAppProjects, type AppHome, type AppImage, type AppProject } from '../portal/catalogData';
 import { area, t } from '../portal/i18n';
 
 export interface PartnerContext {
@@ -35,22 +34,36 @@ function planHome(plan: LabPlan, project: AppProject, lang: Lang, img: (src: str
   };
 }
 
+/** Public photo URL for a file in the partner's catalog media folder (served by /api/lab/media). */
+export const labMediaUrl = (partner: string, file: string) => `/api/lab/media?partner=${encodeURIComponent(partner)}&f=${encodeURIComponent(file)}`;
+
 /**
- * Loads a partner and its catalog for display. Catalog photos are served through a
- * share token signed for the partner's portal investor, so nobody needs a login to see them.
+ * Loads a partner and its catalog for display. Photos come from the lab media route, which
+ * serves only this partner's catalog media and carries no token that could open the priced catalog.
  * Where the partner has lab floor plans for a subdivision, they replace the catalog homes.
  */
 export async function loadPartner(slug: string, lang: Lang, withProjects = true): Promise<PartnerContext | null> {
   const partner = await getPartner(slug);
   if (!partner) return null;
-  const token = signShare(partner.investorId);
-  const img = (src: string) => catalogImageUrl(partner.catalogId, src, token);
+  const img = (src: string) => (src.startsWith('/') ? src : labMediaUrl(partner.slug, src));
   const brand = { name: partner.name, logo: partner.logo ? img(partner.logo) : null };
   const heroSrc = partner.numbers?.plans?.find((x) => x.real)?.images?.[0];
   const hero = heroSrc ? img(heroSrc) : null;
   if (!withProjects) return { partner, brand, hero, projects: [] };
   const catalog = await getCatalog(partner.catalogId);
-  const base = catalog ? await buildAppProjects(catalog, lang, token) : [];
+  // Catalog photo URLs point at the investor portal's file route; move them to the lab media route.
+  const toLab = (i: AppImage): AppImage => {
+    const m = i.src.match(/^\/api\/portal\/file\?p=([^&]+)/);
+    const path = m ? decodeURIComponent(m[1]) : '';
+    const prefix = `catalogs/${partner.catalogId}/`;
+    return path.startsWith(prefix) ? { ...i, src: labMediaUrl(partner.slug, path.slice(prefix.length)) } : i;
+  };
+  const base = (catalog ? await buildAppProjects(catalog, lang) : []).map((p) => ({
+    ...p,
+    image: toLab(p.image),
+    lotImage: p.lotImage ? toLab(p.lotImage) : null,
+    homes: p.homes.map((h) => ({ ...h, images: h.images.map(toLab) })),
+  }));
   const plans = partner.numbers?.plans ?? [];
   const projects = base.map((p) => {
     const here = plans.filter((x) => x.communities.includes(p.slug));

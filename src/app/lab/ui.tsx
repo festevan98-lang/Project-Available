@@ -26,6 +26,7 @@ export const labCss = `
   .lx .btn-ghost { background: #fff; color: ${T.ink}; border-color: ${T.line}; }
   .lx input, .lx textarea, .lx select { font: 16px var(--lab-sans), sans-serif; color: ${T.ink}; width: 100%; padding: 12px 14px; border: 1px solid ${T.line}; border-radius: 12px; background: #fff; }
   .lx input:focus, .lx textarea:focus { outline: 2px solid ${T.accent}; outline-offset: 1px; }
+  .lx .lx-cell:focus-within { outline: 2px solid ${T.accent}; outline-offset: 1px; }
   .lx .fade { animation: lx-in .25s ease-out; }
   @keyframes lx-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .lx .fade { animation: none; } }

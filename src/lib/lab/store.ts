@@ -20,22 +20,27 @@ async function writeJson(pathname: string, data: unknown): Promise<void> {
   });
 }
 
-async function readAll<T>(prefix: string): Promise<T[]> {
-  const out: T[] = [];
+/** Reads every JSON blob under a prefix; with newest, only the newest N by pathname (pathnames start with a timestamp). */
+async function readAll<T>(prefix: string, newest?: number): Promise<T[]> {
+  const paths: string[] = [];
   let cursor: string | undefined;
   do {
     const page = await list({ prefix, cursor, limit: 1000 });
-    const items = await Promise.all(page.blobs.map((b) => readJson<T>(b.pathname)));
-    out.push(...items.filter((x): x is Awaited<T> => x !== null) as T[]);
+    paths.push(...page.blobs.map((b) => b.pathname));
     cursor = page.hasMore ? page.cursor : undefined;
   } while (cursor);
-  return out;
+  const pick = newest ? paths.sort().reverse().slice(0, newest) : paths;
+  const items = await Promise.all(pick.map((pathname) => readJson<T>(pathname)));
+  return items.filter((x): x is Awaited<T> => x !== null) as T[];
 }
 
 export const newId = (bytes = 16) => randomBytes(bytes).toString('base64url');
 
+/** A partner-site deployment (LAB_HOME=/lab/<slug>) only knows its own partner. */
+const servesPartner = (slug: string) => !process.env.LAB_HOME || process.env.LAB_HOME === `/lab/${slug}`;
+
 export async function getPartner(slug: string): Promise<LabPartner | null> {
-  return SLUG.test(slug) ? readJson<LabPartner>(`${ROOT}/partners/${slug}.json`) : null;
+  return SLUG.test(slug) && servesPartner(slug) ? readJson<LabPartner>(`${ROOT}/partners/${slug}.json`) : null;
 }
 
 /** FEREST cost basis for a partner's offer. Callers must check the account is an owner. */
@@ -128,7 +133,10 @@ export async function saveLead(lead: LabLead): Promise<void> {
   await writeJson(`${ROOT}/leads/${lead.partner}/${lead.createdAt.replace(/[:.]/g, '-')}-${lead.id}.json`, lead);
 }
 
+/** The panel and export show the newest requests; older ones stay in storage. */
+const MAX_LEADS = 300;
+
 export async function listLeads(partner: string): Promise<LabLead[]> {
-  const leads = await readAll<LabLead>(`${ROOT}/leads/${partner}/`);
+  const leads = await readAll<LabLead>(`${ROOT}/leads/${partner}/`, MAX_LEADS);
   return leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }

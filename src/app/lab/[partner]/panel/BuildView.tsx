@@ -85,17 +85,17 @@ export default function BuildView({ lang, partner, communities, builds: initial,
                           {P(lang, STATUS_KEY[status])}{st?.date ? ` · ${st.date}` : ''}
                         </span>
                         {isOwner && !isEditing && (
-                          <button type="button" onClick={() => setEdit({ id: bld.id, stage: s, status: status === 'pending' ? 'scheduled' : status, date: st?.date ?? new Date().toISOString().slice(0, 10), note: st?.note ?? '' })}
+                          <button type="button" onClick={() => setEdit({ id: bld.id, stage: s, status: status === 'pending' ? 'scheduled' : status, date: st?.date ?? new Date().toLocaleDateString('en-CA'), note: st?.note ?? '' })}
                             style={{ background: 'none', border: 'none', color: T.accent, fontFamily: 'inherit', fontSize: 13, cursor: 'pointer', padding: 0 }}>{P(lang, 'bEdit')}</button>
                         )}
                       </span>
                       {isEditing && edit && (
                         <div className="fade" style={{ flexBasis: '100%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, background: T.soft, borderRadius: 12, padding: 10 }}>
-                          <select value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as StageStatus })}>
+                          <select aria-label={STAGE_SHORT[s][lang]} value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as StageStatus })}>
                             {(['pending', 'scheduled', 'passed', 'failed'] as StageStatus[]).map((x) => <option key={x} value={x}>{P(lang, STATUS_KEY[x])}</option>)}
                           </select>
-                          <input type="date" value={edit.date} onChange={(e) => setEdit({ ...edit, date: e.target.value })} />
-                          <input placeholder={P(lang, 'bNote')} value={edit.note} maxLength={300} onChange={(e) => setEdit({ ...edit, note: e.target.value })} style={{ gridColumn: '1 / -1' }} />
+                          <input type="date" aria-label={P(lang, 'bWhen')} value={edit.date} onChange={(e) => setEdit({ ...edit, date: e.target.value })} />
+                          <input aria-label={P(lang, 'bNote')} placeholder={P(lang, 'bNote')} value={edit.note} maxLength={300} onChange={(e) => setEdit({ ...edit, note: e.target.value })} style={{ gridColumn: '1 / -1' }} />
                           <button type="button" className="btn btn-primary" disabled={busy} onClick={saveStage}>{P(lang, 'cpSave')}</button>
                           <button type="button" className="btn btn-ghost" onClick={() => setEdit(null)}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</button>
                         </div>
@@ -113,8 +113,8 @@ export default function BuildView({ lang, partner, communities, builds: initial,
         <form onSubmit={create} style={{ marginTop: 14, borderRadius: 16, border: '1px dashed #B42318', padding: 16, background: '#FFF8F6', display: 'grid', gap: 8 }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#B42318' }}>{P(lang, 'bAdd')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-            <input placeholder={P(lang, 'bLabelPh')} value={draft.label} maxLength={120} onChange={(e) => setDraft({ ...draft, label: e.target.value })} required />
-            <select value={draft.community} onChange={(e) => setDraft({ ...draft, community: e.target.value })}>
+            <input aria-label={P(lang, 'bLabelPh')} placeholder={P(lang, 'bLabelPh')} value={draft.label} maxLength={120} onChange={(e) => setDraft({ ...draft, label: e.target.value })} required />
+            <select aria-label={P(lang, 'community')} value={draft.community} onChange={(e) => setDraft({ ...draft, community: e.target.value })}>
               {communities.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
             </select>
           </div>

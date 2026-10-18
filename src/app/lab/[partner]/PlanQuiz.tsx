@@ -106,6 +106,7 @@ export default function PlanQuiz({ lang, partner, partnerName }: { lang: Lang; p
               {plan.map((k) => <li key={k}>{L(lang, k)}</li>)}
             </ul>
             <p style={{ margin: '10px 0 0', fontSize: 14, lineHeight: 1.5 }}>{L(lang, 'planNext', vars)}</p>
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: T.muted }}>{L(lang, 'generalInfo')}</p>
           </div>
           <form onSubmit={submit} style={{ display: 'grid', gap: 12 }}>
             <label style={{ display: 'grid', gap: 6, fontSize: 14, fontWeight: 600 }}>
@@ -114,7 +115,7 @@ export default function PlanQuiz({ lang, partner, partnerName }: { lang: Lang; p
             </label>
             <label style={{ display: 'grid', gap: 6, fontSize: 14, fontWeight: 600 }}>
               {L(lang, 'fPhone')}
-              <input type="tel" autoComplete="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input type="tel" autoComplete="tel" placeholder="+52 81 0000 0000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </label>
             <label style={{ display: 'grid', gap: 6, fontSize: 14, fontWeight: 600 }}>
               {L(lang, 'fEmail')}
@@ -123,7 +124,7 @@ export default function PlanQuiz({ lang, partner, partnerName }: { lang: Lang; p
             <input tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={{ position: 'absolute', left: -9999, width: 1, height: 1 }} />
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: T.muted }}>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2 }} />
-              {L(lang, 'fConsent')}
+              <span>{L(lang, 'fConsent')} <a href={`/lab/${partner}/privacidad`} target="_blank" rel="noopener noreferrer" style={{ color: T.accent }}>{L(lang, 'privacyFull')}</a></span>
             </label>
             {state === 'error' && <div style={{ color: '#B42318', fontSize: 14, fontWeight: 600 }}>{L(lang, 'fError')}</div>}
             <button type="submit" className="btn btn-primary" disabled={state === 'busy' || !consent || !form.name || (!form.phone && !form.email)}

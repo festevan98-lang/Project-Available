@@ -26,6 +26,7 @@ export async function POST(request: Request) {
   const prev = await getMarket(partner);
   const kept = (prev?.comps ?? []).filter((c) => b.mode === 'add' || c.community !== community);
   await saveMarket(partner, {
+    notes: prev?.notes,
     updatedAt: new Date().toISOString(),
     source: source || prev?.source || '',
     comps: [...kept, ...comps],

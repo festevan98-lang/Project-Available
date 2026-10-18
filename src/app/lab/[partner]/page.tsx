@@ -69,7 +69,7 @@ export default async function PartnerLanding({ params, searchParams }: {
         <PlanQuiz lang={lang} partner={slug} partnerName={partner.name} />
         <details style={{ marginTop: 14, fontSize: 13, color: T.muted }}>
           <summary style={{ cursor: 'pointer' }}>{L(lang, 'privacyTitle')}</summary>
-          <p style={{ lineHeight: 1.55 }}>{L(lang, 'privacyBody', vars)}</p>
+          <p style={{ lineHeight: 1.55 }}>{L(lang, 'privacyBody', vars)} <a href={`/lab/${slug}/privacidad`} style={{ color: T.accent }}>{L(lang, 'privacyFull')}</a></p>
         </details>
       </section>
 
@@ -83,6 +83,7 @@ export default async function PartnerLanding({ params, searchParams }: {
             </details>
           ))}
         </div>
+        <p style={{ fontSize: 12, color: T.muted, marginTop: 10 }}>{L(lang, 'generalInfo')}</p>
       </section>
 
       <a href={wa} target="_blank" rel="noopener noreferrer" aria-label={L(lang, 'heroWa')}

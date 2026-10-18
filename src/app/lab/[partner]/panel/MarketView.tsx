@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Comp } from '@/lib/lab/types';
-import { perLiving, statsFor } from '@/lib/lab/market';
+import { perLiving, safeUrl, statsFor } from '@/lib/lab/market';
 import type { Lang } from '@/lib/portal/types';
 import { money } from '../../../portal/i18n';
 import { P } from '../../panelCopy';
@@ -97,7 +97,7 @@ export default function MarketView({ lang, partner, communities, comps, source, 
                 <span style={{ display: 'block', fontSize: 12, color: T.muted }}>
                   {[c.subdivision, c.beds != null && c.baths != null ? `${c.beds}/${c.baths}` : null, c.livingSqft ? `${n(c.livingSqft)} ft²` : null, c.lotSqft && c.kind === 'lot' ? `${n(c.lotSqft)} ft² ${lang === 'es' ? 'terreno' : 'lot'}` : null, c.yearBuilt, c.builder].filter(Boolean).join(' · ')}
                 </span>
-                {c.sourceUrl && <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: T.accent }}>{P(lang, 'source')} ›</a>}
+                {safeUrl(c.sourceUrl) && <a href={safeUrl(c.sourceUrl)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: T.accent }}>{P(lang, 'source')} ›</a>}
               </span>
               <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                 <b style={{ fontSize: 15 }}>{money(c.price)}{c.kind === 'rental' ? (lang === 'es' ? '/mes' : '/mo') : ''}</b>
@@ -117,16 +117,16 @@ export default function MarketView({ lang, partner, communities, comps, source, 
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#B42318' }}>{P(lang, 'mkUploadTitle')}</div>
           <p style={{ margin: 0, fontSize: 13, color: T.muted, lineHeight: 1.5 }}>{P(lang, 'mkUploadHelp')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-            <select value={upload.community} onChange={(e) => setUpload({ ...upload, community: e.target.value })}>
+            <select aria-label={P(lang, 'community')} value={upload.community} onChange={(e) => setUpload({ ...upload, community: e.target.value })}>
               {communities.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
             </select>
-            <select value={upload.mode} onChange={(e) => setUpload({ ...upload, mode: e.target.value as 'replace' | 'add' })}>
+            <select aria-label={P(lang, 'mkUpload')} value={upload.mode} onChange={(e) => setUpload({ ...upload, mode: e.target.value as 'replace' | 'add' })}>
               <option value="replace">{P(lang, 'mkReplace')}</option>
               <option value="add">{P(lang, 'mkAdd')}</option>
             </select>
           </div>
-          <input placeholder={P(lang, 'mkSourcePh')} value={upload.source} onChange={(e) => setUpload({ ...upload, source: e.target.value })} />
-          <input name="csv" type="file" accept=".csv,text/csv" required />
+          <input aria-label={P(lang, 'mkSourcePh')} placeholder={P(lang, 'mkSourcePh')} value={upload.source} onChange={(e) => setUpload({ ...upload, source: e.target.value })} />
+          <input name="csv" type="file" accept=".csv,text/csv" aria-label={P(lang, 'mkUpload')} required />
           <button type="submit" className="btn btn-primary" disabled={state === 'busy'}>{state === 'busy' ? '…' : P(lang, 'mkUpload')}</button>
           {result && <div style={{ fontSize: 13, color: state === 'error' ? '#B42318' : T.accent }}>{result}</div>}
         </form>

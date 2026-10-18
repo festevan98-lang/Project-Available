@@ -23,13 +23,13 @@ export interface OwnershipFacts {
 const TAX_HIDALGO: Source = { label: 'Hidalgo County, resumen de tasas 2021-2025', url: 'https://www.hidalgocounty.us/DocumentCenter/View/71282/5yrsummary2021_2025' };
 const TAX_MISSION: Source = { label: 'The Monitor: Mission adopta tasa 2026', url: 'https://myrgv.com/local-news/2026/09/23/mission-adopts-new-property-tax-rate-for-upcoming-fiscal-year/' };
 const HOMESTEAD: Source = { label: 'Texas Comptroller: exenciones', url: 'https://comptroller.texas.gov/taxes/property-tax/exemptions/' };
-const LAGUNA_COMPS: Source = { label: 'Redfin / McAllen MLS, cierres Laguna Oaks 2024-2026', url: 'https://www.redfin.com/city/12485/TX/Mission' };
+const LAGUNA_COMPS: Source = { label: 'Redfin: ventas de casas nuevas en Laguna Oaks, 2025-2026', url: 'https://www.redfin.com/city/12485/TX/Mission' };
 const SISU: Source = { label: 'Sisu Development, Pecan Heights', url: 'https://sisudevelopment.com/pecan-heights/' };
 
 const lagunaMarket = {
-  es: 'Casas nuevas de 3 recámaras y ~1,540 ft² habitables en Laguna Oaks se han vendido entre $280,000 y $292,000 (2024-2026).',
-  en: 'New 3-bedroom, ~1,540 living sq ft homes in Laguna Oaks have closed between $280,000 and $292,000 (2024-2026).',
-};
+  es: 'Casas nuevas vendidas en Laguna Oaks (jun. 2025 a oct. 2026, 36 ventas): mediana de aprox. $178 por ft² habitable y $295,000 por una casa de ~1,650 ft². Precios publicados en listados; Texas no publica precios de cierre.',
+  en: 'New homes sold in Laguna Oaks (Jun 2025 to Oct 2026, 36 sales): median about $178 per living sq ft and $295,000 for a ~1,650 sq ft home. Prices as published in listings; Texas does not disclose closing prices.',
+}
 
 export const FACTS: Record<string, OwnershipFacts> = {
   'laguna-heights': {
@@ -46,8 +46,8 @@ export const FACTS: Record<string, OwnershipFacts> = {
     taxRate: 0.022797, taxNote: 'McAllen, Hidalgo County, TY2025', insurance: 3000, hoa: 456,
     rentBase: 1850, rentLow: 1750, rentHigh: 1950,
     market: {
-      es: 'El desarrollador vecino pide $348,000 por un townhouse de 1,474 ft² en el mismo fraccionamiento (precio de lista; aún sin cierres registrados).',
-      en: 'The neighboring developer asks $348,000 for a 1,474 sq ft townhome in the same subdivision (asking price; no recorded closings yet).',
+      es: 'Townhomes nuevos de 3 recámaras vendidos en McAllen (2025-2026): mediana de aprox. $181 por ft² habitable. El desarrollador vecino pide $348,000 por 1,474 ft², sin ventas cerradas que lo respalden.',
+      en: 'New 3-bedroom townhomes sold in McAllen (2025-2026): median about $181 per living sq ft. The neighboring developer asks $348,000 for 1,474 sq ft, with no closed sales to support it.',
     },
     sources: [TAX_HIDALGO, HOMESTEAD, SISU],
   },

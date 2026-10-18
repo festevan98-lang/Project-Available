@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Lang } from '@/lib/portal/types';
 import type { Opportunity } from '@/lib/lab/types';
 import { APPRECIATION, FACTS, annualCost, rentalNet } from '@/lib/lab/facts';
@@ -427,14 +427,14 @@ export default function ClientExperience({ lang, partner, label, projects, oppor
         <p style={{ fontSize: 15, lineHeight: 1.6, marginTop: 16 }}>{L(lang, 'visaE2')}</p>
         <p style={{ fontSize: 15, lineHeight: 1.6 }}>{L(lang, 'visaEb5')}</p>
         <p style={{ fontSize: 15, lineHeight: 1.6, color: T.muted }}>{L(lang, 'visaAttorney', { partner: partner.name })}</p>
-        <a className="btn btn-ghost" style={{ marginTop: 6, width: '100%' }} href={wa(L(lang, 'askAttorney'))} target="_blank" rel="noopener noreferrer" onClick={() => track('cta:attorney')}>{L(lang, 'askAttorney')}</a>
+        <a className="btn btn-ghost" style={{ marginTop: 6, width: '100%' }} href={`https://wa.me/${partner.whatsapp}?text=${encodeURIComponent(L(lang, 'askAttorneyMsg', { contact: partner.contactName }))}`} target="_blank" rel="noopener noreferrer" onClick={() => track('cta:attorney')}>{L(lang, 'askAttorney')}</a>
       </div>
     );
   }
 
   return (
     <div>
-      <nav aria-label="Secciones" style={{ position: 'sticky', top: 55, zIndex: 20, background: '#fff', borderBottom: `1px solid ${T.line}`, margin: '0 -20px', padding: '0 12px', display: 'flex', overflowX: 'auto', scrollbarWidth: 'none' }}>
+      <nav aria-label="Secciones" style={{ position: 'sticky', top: 61, zIndex: 20, background: '#fff', borderBottom: `1px solid ${T.line}`, margin: '0 -20px', padding: '0 12px', display: 'flex', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {tabs.map(([t, k]) => (
           <button key={t} type="button" onClick={() => { if (t === 'options') { setProject(null); setPick(null); } go(t); }} aria-current={tab === t ? 'page' : undefined}
             style={{ flexShrink: 0, padding: '13px 10px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === t ? T.accent : 'transparent'}`, fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: tab === t ? T.ink : T.muted, cursor: 'pointer' }}>
@@ -444,6 +444,10 @@ export default function ClientExperience({ lang, partner, label, projects, oppor
       </nav>
       {preview && <div style={{ marginTop: 14, fontSize: 13, color: T.gold, fontWeight: 600 }}>{L(lang, 'preview')}</div>}
       {body}
+      <details style={{ marginTop: 28, fontSize: 12, color: T.muted }}>
+        <summary style={{ cursor: 'pointer' }}>{L(lang, 'privacyTitle')}</summary>
+        <p style={{ lineHeight: 1.55 }}>{L(lang, 'clientPrivacy', { partner: partner.name })} <a href={`/lab/${partner.slug}/privacidad`} style={{ color: T.accent }}>{L(lang, 'privacyFull')}</a></p>
+      </details>
       {visit && <VisitSheet lang={lang} partner={partner.slug} linkId={linkId} label={label} preview={preview} onClose={() => setVisit(false)} />}
     </div>
   );
@@ -451,35 +455,52 @@ export default function ClientExperience({ lang, partner, label, projects, oppor
 
 function VisitSheet({ lang, partner, linkId, label, preview, onClose }: { lang: Lang; partner: string; linkId: string | null; label: string | null; preview: boolean; onClose: () => void }) {
   const [f, setF] = useState({ name: label ?? '', phone: '', date: '', people: '2', notes: '' });
+  const [consent, setConsent] = useState(false);
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+  const first = useRef<HTMLInputElement>(null);
+
+  // Dialog basics: focus the first field, close on Escape, give focus back on close.
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null;
+    first.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); before?.focus?.(); };
+  }, [onClose]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (preview) { setState('done'); return; }
     setState('busy');
     const res = await fetch('/api/lab/lead', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ partner, kind: 'visit', linkId, name: f.name, phone: f.phone, interest: ['visit'], message: `${L(lang, 'visitDate')}: ${f.date || '-'} · ${L(lang, 'visitPeople')}: ${f.people} · ${f.notes}` }),
+      body: JSON.stringify({ partner, kind: 'visit', linkId, consent, name: f.name, phone: f.phone, interest: ['visit'], message: `${L(lang, 'visitDate')}: ${f.date || '-'} · ${L(lang, 'visitPeople')}: ${f.people} · ${f.notes}` }),
     }).catch(() => null);
     setState(res?.ok ? 'done' : 'error');
   }
+  const field = { display: 'grid', gap: 4, fontSize: 13, color: T.muted } as const;
   return (
-    <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="fade" style={{ width: '100%', maxWidth: 560, background: '#fff', borderRadius: '18px 18px 0 0', padding: '18px 20px calc(22px + env(safe-area-inset-bottom))', display: 'grid', gap: 12 }}>
-        <div className="serif" style={{ fontSize: 24 }}>{L(lang, 'visitTitle')}</div>
+    <div role="dialog" aria-modal="true" aria-labelledby="visit-title" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="fade" style={{ width: '100%', maxWidth: 560, background: '#fff', borderRadius: '18px 18px 0 0', padding: '18px 20px calc(22px + env(safe-area-inset-bottom))', display: 'grid', gap: 12, maxHeight: '90dvh', overflowY: 'auto' }}>
+        <div id="visit-title" className="serif" style={{ fontSize: 24 }}>{L(lang, 'visitTitle')}</div>
         {state === 'done' ? (
           <p style={{ fontSize: 16 }}>{L(lang, 'visitThanks')}</p>
         ) : (
           <>
             <p style={{ fontSize: 14, color: T.muted, margin: 0 }}>{L(lang, 'visitBody')}</p>
-            <input placeholder={L(lang, 'fName')} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required />
-            <input placeholder={L(lang, 'fPhone')} type="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
+            <label style={field}>{L(lang, 'fName')}<input ref={first} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required /></label>
+            <label style={field}>{L(lang, 'fPhone')}<input type="tel" autoComplete="tel" placeholder="+52 81 0000 0000" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></label>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-              <label style={{ display: 'grid', gap: 4, fontSize: 13, color: T.muted }}>{L(lang, 'visitDate')}<input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></label>
-              <label style={{ display: 'grid', gap: 4, fontSize: 13, color: T.muted }}>{L(lang, 'visitPeople')}<input type="number" min={1} max={12} value={f.people} onChange={(e) => setF({ ...f, people: e.target.value })} /></label>
+              <label style={field}>{L(lang, 'visitDate')}<input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></label>
+              <label style={field}>{L(lang, 'visitPeople')}<input type="number" min={1} max={12} value={f.people} onChange={(e) => setF({ ...f, people: e.target.value })} /></label>
             </div>
-            <textarea rows={2} placeholder={L(lang, 'fMessage')} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
-            {state === 'error' && <div style={{ color: '#B42318', fontSize: 14 }}>{L(lang, 'fError')}</div>}
-            <button type="submit" className="btn btn-primary" disabled={state === 'busy'}>{L(lang, 'visitSend')}</button>
+            <label style={field}>{L(lang, 'fMessage')}<textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></label>
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: T.muted }}>
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, flexShrink: 0 }} />
+              {L(lang, 'fConsentClient')}
+            </label>
+            {state === 'error' && <div role="alert" style={{ color: '#B42318', fontSize: 14 }}>{L(lang, 'fError')}</div>}
+            <button type="submit" className="btn btn-primary" disabled={state === 'busy' || !consent || !f.name} style={{ opacity: state === 'busy' || !consent || !f.name ? 0.55 : 1 }}>{L(lang, 'visitSend')}</button>
           </>
         )}
         <button type="button" className="btn btn-ghost" onClick={onClose}>{lang === 'es' ? 'Cerrar' : 'Close'}</button>

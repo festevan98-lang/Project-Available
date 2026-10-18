@@ -14,11 +14,13 @@ export const metadata = { robots: { index: false, follow: false } };
 
 const printCss = `
   @page { size: letter; margin: 0.45in; }
+  @media (max-width: 480px) { .sheet { padding: 22px 18px !important; } }
   @media print {
     .no-print { display: none !important; }
     .lx { background: #fff !important; padding: 0 !important; }
     .sheet { box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: none !important; }
     .avoid { break-inside: avoid; }
+    .kit-plans { grid-template-columns: repeat(3, 1fr) !important; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 `;
@@ -83,7 +85,7 @@ export default async function PartnerKit({ params }: { params: Promise<{ partner
         <h1 className="serif" style={{ fontSize: 34, lineHeight: 1.12, margin: '8px 0 0' }}>{L(lang, 'homeTitle')}</h1>
         <p style={{ fontSize: 15, color: T.muted, lineHeight: 1.55, margin: '10px 0 0' }}>{L(lang, 'homeLead')}</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${planList.length || 1}, 1fr)`, gap: 12, marginTop: 20 }}>
+        <div className="kit-plans" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginTop: 20 }}>
           {planList.map(({ home, from, places }) => (
             <div key={home.id} className="avoid" style={{ border: `1px solid ${T.line}`, borderRadius: 12, overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

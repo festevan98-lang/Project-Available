@@ -9,11 +9,17 @@ export default function LabLoginForm({ partner, labels }: { partner: string; lab
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setState('busy');
-    const res = await fetch('/api/lab/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
-    if (res.ok) {
-      const data = await res.json();
-      window.location.href = `/lab/${data.partner || partner}/panel`;
-    } else setState('bad');
+    try {
+      const res = await fetch('/api/lab/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        window.location.href = `/lab/${data.partner || partner}/panel`;
+        return;
+      }
+      setState('bad');
+    } catch {
+      setState('bad');
+    }
   }
 
   return (

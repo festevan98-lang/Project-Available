@@ -10,11 +10,12 @@ import { P } from '../../panelCopy';
 import { T } from '../../ui';
 
 /** Partner chooses what clients see: their own price, list, or their price plus a markup. */
-export default function ClientPricingCard({ lang, partner, projects, initial }: {
+export default function ClientPricingCard({ lang, partner, projects, initial, onSaved }: {
   lang: Lang;
   partner: string;
   projects: AppProject[];
   initial: ClientPricing;
+  onSaved?: (p: ClientPricing) => void;
 }) {
   const [pricing, setPricing] = useState<ClientPricing>(initial);
   const [saved, setSaved] = useState<ClientPricing>(initial);
@@ -40,7 +41,7 @@ export default function ClientPricingCard({ lang, partner, projects, initial }: 
       body: JSON.stringify({ partner, mode: pricing.mode, markupPct: pricing.markupPct }),
     }).catch(() => null);
     const data = res?.ok ? await res.json() : null;
-    if (data?.ok) { setSaved(data.clientPricing); setPricing(data.clientPricing); setState('idle'); } else setState('error');
+    if (data?.ok) { setSaved(data.clientPricing); setPricing(data.clientPricing); onSaved?.(data.clientPricing); setState('idle'); } else setState('error');
   }
 
   const modes: [ClientPricing['mode'], 'cpPartner' | 'cpList' | 'cpMarkup'][] = [['partner', 'cpPartner'], ['list', 'cpList'], ['markup', 'cpMarkup']];

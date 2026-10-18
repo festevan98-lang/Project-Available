@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { Lang } from '@/lib/portal/types';
 import { FACTS } from '@/lib/lab/facts';
-import { SECTIONS, fullProforma, type Basis, type CostModel, type Exit, type Row, type Section } from '@/lib/lab/fullProforma';
+import { fullProforma, pickCostModel, type Basis, type CostModel, type Exit, type Row, type Section } from '@/lib/lab/fullProforma';
 import type { AppProject } from '../../../portal/catalogData';
 import { money } from '../../../portal/i18n';
 import { P, type PanelKey } from '../../panelCopy';
@@ -15,12 +15,28 @@ const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 const n = (v: number) => v.toLocaleString('en-US');
 const rate = (v: number) => `$${v % 1 ? v.toFixed(2) : v}`;
 
-export interface OwnerView { buildCost: number; buildCostNote: string; lotCost: Record<string, number> }
+export interface OwnerView {
+  buildCost: number;
+  buildCostNote: string;
+  lotCost: Record<string, number>;
+  /** Per-home actual cost per total sq ft, keyed like the cost models. */
+  buildCostBy?: Record<string, number>;
+  buildCostNoteBy?: Record<string, string>;
+}
 
 /** Market reference for the sale price: median $/living sq ft of comparable new homes, per subdivision. */
 export interface MarketRef { slug: string; perLiving: number; count: number; label: string }
 
 const SECTION_KEY: Record<Section, PanelKey> = { acq: 's2', design: 's3', hard: 's4', finance: 's5', hold: 's6', sale: 's7' };
+
+/** The pro forma as an investor or bank reads it: land, hard costs and soft costs, each opening to its items. */
+type Group = 'land' | 'hard' | 'soft';
+const GROUPS: { key: Group; label: PanelKey; hint: PanelKey; sections: Section[] }[] = [
+  { key: 'land', label: 'gLand', hint: 'gLandHint', sections: ['acq'] },
+  { key: 'hard', label: 'hardTitle', hint: 'gHardHint', sections: ['hard'] },
+  { key: 'soft', label: 'softTitle', hint: 'gSoftHint', sections: ['design', 'finance', 'hold', 'sale'] },
+];
+const groupOf = (s: Section) => GROUPS.find((g) => g.sections.includes(s))!;
 
 function Cell({ value, onChange, prefix, suffix, step = 1, label, wide }: {
   value: number; onChange: (v: number) => void; prefix?: string; suffix?: string; step?: number; label: string; wide?: boolean;
@@ -41,11 +57,13 @@ function Cell({ value, onChange, prefix, suffix, step = 1, label, wide }: {
 const unitFor = (b: Basis, lang: Lang): { prefix?: string; suffix?: string; step: number; wide?: boolean } =>
   b === 'pctSale' || b === 'pctLoan' ? { suffix: '%', step: 0.5 } : b === 'perMonth' ? { prefix: '$', suffix: lang === 'es' ? '/mes' : '/mo', step: 10 } : { prefix: '$', step: 50, wide: true };
 
-export default function Numbers({ lang, projects, volumeMin, model, owner, market }: {
+export default function Numbers({ lang, projects, volumeMin, model, models = {}, owner, market }: {
   lang: Lang;
   projects: AppProject[];
   volumeMin: number;
-  model: CostModel;
+  model: CostModel | null;
+  /** Cost models for specific homes ("community/plan", plan id or community slug); model is the default. */
+  models?: Record<string, CostModel>;
   owner: OwnerView | null;
   market: MarketRef[];
 }) {
@@ -69,9 +87,10 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
   const [overrides, setOverrides] = useState<Record<string, number>>({});
   const [saleOverride, setSaleOverride] = useState<Record<string, number>>({});
   const [rentOverride, setRentOverride] = useState<Record<string, number>>({});
-  const [closed, setClosed] = useState<Partial<Record<Section, boolean>>>({});
+  const [open, setOpen] = useState<Partial<Record<Group, boolean>>>({});
   const [openNote, setOpenNote] = useState<string | null>(null);
-  const [ownerCost, setOwnerCost] = useState(owner?.buildCost ?? 0);
+  // Owner's cost per home, so a figure typed for one plan never carries over to another.
+  const [ownerCostEdit, setOwnerCostEdit] = useState<Record<string, number>>({});
   const [ownerLot, setOwnerLot] = useState<Record<string, number>>(owner?.lotCost ?? {});
   const [tryRate, setTryRate] = useState<number | null>(null);
 
@@ -91,6 +110,13 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
 
   if (!project || !homeIn || !lot || !home) return null;
 
+  // Each home uses its own cost model when there is one (e.g. a townhome community), else the default.
+  const homeKey = `${project.slug}/${home.id}`;
+  const keys = [homeKey, home.id, project.slug];
+  const picked = pickCostModel(model, models, keys);
+  if (!picked) return <p style={{ marginTop: 24, color: T.muted }}>{P(lang, 'noModel')}</p>;
+  const m = picked.model;
+
   const listPrice = homeIn.lot.list + Math.round((homeIn.rateBasis === 'living' ? homeIn.living : homeIn.total) * homeIn.rate.list);
   const mkt = market.find((m) => m.slug === project.slug) ?? null;
   const marketPrice = mkt ? Math.round(mkt.perLiving * homeIn.living) : project.appraisal ? Math.round(project.appraisal.perSqft * homeIn.living) : null;
@@ -98,15 +124,24 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
   const salePrice = saleOverride[saleKey] ?? (exit === 'market' ? marketPrice ?? listPrice : listPrice);
   const rent = rentOverride[project.slug] ?? facts.rentBase;
   const exitOverrides = Object.fromEntries(Object.entries(overrides).filter(([k]) => k.startsWith(`${exit}:`)).map(([k, v]) => [k.slice(exit.length + 1), v]));
-  const res = fullProforma(model, homeIn, { units, exit, salePrice, rent, months, buildMonths, loanPct, ratePct, overrides: exitOverrides }, facts, volumeMin);
+  const res = fullProforma(m, homeIn, { units, exit, salePrice, rent, months, buildMonths, loanPct, ratePct, overrides: exitOverrides }, facts, volumeMin);
   const lotCost = ownerLot[project.slug] || null;
-  const ferest = owner ? { build: res.contract - Math.round(homeIn.total * ownerCost), lot: lotCost != null ? res.lotPrice - lotCost : null } : null;
+  // Owner cost: the home's own entry, else (for a home with its own model) that model's cost, never another plan's.
+  const costKey = keys.find((k) => typeof owner?.buildCostBy?.[k] === 'number') ?? null;
+  const modelRate = homeIn.total ? Math.round(res.contractCost / homeIn.total * 100) / 100 : 0;
+  const ownerCost = ownerCostEdit[homeKey]
+    ?? (costKey ? owner!.buildCostBy![costKey] : picked.key ? modelRate : owner?.buildCost ?? 0);
+  // At the home model's own rate, use its exact dollars, so rounding the rate to cents never moves the margin.
+  const ownerBuild = picked.key && ownerCost === modelRate ? res.contractCost : Math.round(homeIn.total * ownerCost);
+  const ownerNote = (costKey && owner?.buildCostNoteBy?.[costKey]) || (picked.key ? m.source[lang] : owner?.buildCostNote) || '';
+  const ferest = owner ? { build: res.contract - ownerBuild, lot: lotCost != null ? res.lotPrice - lotCost : null } : null;
 
   const contractRows = res.rows.filter((r) => r.inContract);
   const setOverride = (key: string, v: number) => setOverrides((s) => ({ ...s, [`${exit}:${key}`]: v }));
 
   const basisHint = (r: Row): string | null => {
-    if (r.margin) return null;
+    // Contract lines read like a bank budget: item and amount, no unit costs.
+    if (r.margin || (r.inContract && r.key !== 'contract')) return null;
     if (r.basis === 'perTotal') return `${n(homeIn.total)} ft² × ${rate(Math.round(r.value / homeIn.total * 100) / 100)}`;
     if (r.key === 'lot') return lot.sqft ? `${n(lot.sqft)} ft²${res.partnerTier ? ` · ${P(lang, 'partnerPrice')}` : ''}` : null;
     if (r.key === 'taxHold') return `${(r.amount).toFixed(2)}% · ${months} ${P(lang, 'monthsShort')}`;
@@ -120,18 +155,27 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
     return (
       <div key={r.key} style={{ padding: '10px 0', borderTop: i ? `1px solid ${T.line}` : 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 14, color: r.margin ? T.ink : T.muted, fontWeight: r.margin ? 600 : 400, flex: '1 1 200px' }}>
+          {/* Read-only rows keep item and amount on one line; rows with an input may wrap. */}
+          <span style={{ fontSize: 14, color: r.margin ? T.ink : T.muted, fontWeight: r.margin ? 600 : 400, flex: editable ? '1 1 200px' : '1 1 0', minWidth: 0 }}>
             {r.label[lang]}
-            {basisHint(r) && <span style={{ display: 'block', fontSize: 12, color: T.muted, opacity: 0.85 }}>{basisHint(r)}</span>}
-            {r.note && (
-              <button type="button" onClick={() => setOpenNote(openNote === r.key ? null : r.key)} aria-expanded={openNote === r.key}
-                style={{ background: 'none', border: 'none', padding: 0, marginTop: 2, fontFamily: 'inherit', fontSize: 12, color: T.accent, cursor: 'pointer' }}>
-                {openNote === r.key ? '−' : '+'} {P(lang, 'source')}
-              </button>
+            {r.inContract && r.draw != null && (
+              <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: T.accent, background: T.soft, borderRadius: 6, padding: '1px 6px', whiteSpace: 'nowrap' }}>{P(lang, 'drawTag', { n: r.draw })}</span>
+            )}
+            {(basisHint(r) || r.note) && (
+              <span style={{ display: 'block', fontSize: 12, color: T.muted, marginTop: 2 }}>
+                {basisHint(r) && <span style={{ opacity: 0.85 }}>{basisHint(r)}</span>}
+                {basisHint(r) && r.note && ' · '}
+                {r.note && (
+                  <button type="button" onClick={() => setOpenNote(openNote === r.key ? null : r.key)} aria-expanded={openNote === r.key}
+                    style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12, color: T.accent, cursor: 'pointer' }}>
+                    {openNote === r.key ? '−' : '+'} {P(lang, 'source')}
+                  </button>
+                )}
+              </span>
             )}
             {openNote === r.key && r.note && <span className="fade" style={{ display: 'block', fontSize: 12, color: T.muted, marginTop: 2, lineHeight: 1.45 }}>{r.note[lang]}</span>}
           </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
             {editable && <Cell label={r.label[lang]} value={r.amount} onChange={(v) => setOverride(r.key, v)} {...u} />}
             <span style={{ fontWeight: 600, fontSize: 15, minWidth: 84, textAlign: 'right', color: r.margin ? T.accent : T.ink }}>{money(r.value)}</span>
           </span>
@@ -140,22 +184,45 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
     );
   };
 
-  // Plain render helper (not a component) so inputs keep focus while typing.
-  const section = (s: Section) => {
+  // Plain render helpers (not components) so inputs keep focus while typing.
+  const items = (s: Section, withTitle: boolean) => {
     const rows = res.rows.filter((r) => r.section === s);
-    const isClosed = !!closed[s];
     const empty = s === 'finance' && res.loan === 0;
     return (
-      <div key={s} style={{ marginTop: 16 }}>
-        <button type="button" onClick={() => setClosed((c) => ({ ...c, [s]: !c[s] }))} aria-expanded={!isClosed}
-          style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', cursor: 'pointer', color: T.ink }}>
-          <span className="kicker" style={{ textAlign: 'left' }}>{P(lang, SECTION_KEY[s])} {isClosed ? '+' : '−'}</span>
-          <span style={{ fontWeight: 600, fontSize: 15 }}>{money(res.bySection[s])}</span>
-        </button>
+      <div key={s} style={{ marginTop: withTitle ? 10 : 0 }}>
+        {withTitle && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, paddingTop: 6 }}>
+            <span className="kicker" style={{ fontSize: 11 }}>{P(lang, SECTION_KEY[s])}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: T.muted }}>{money(res.bySection[s])}</span>
+          </div>
+        )}
         {(s === 'design' || s === 'hard') && <div style={{ fontSize: 12, color: T.accent, marginTop: 4 }}>{P(lang, 'inContract')}</div>}
-        {!isClosed && (
-          <div className="card" style={{ marginTop: 8, padding: '2px 16px' }}>
-            {empty ? <div style={{ padding: '12px 0', fontSize: 14, color: T.muted }}>{P(lang, 'cashNoLoan')}</div> : rows.map(row)}
+        {empty ? <div style={{ padding: '10px 0', fontSize: 14, color: T.muted }}>{P(lang, 'cashNoLoan')}</div> : rows.map(row)}
+      </div>
+    );
+  };
+
+  const group = (g: (typeof GROUPS)[number], i: number) => {
+    const total = g.sections.reduce((t, s) => t + res.bySection[s], 0);
+    const isOpen = !!open[g.key];
+    return (
+      <div key={g.key} style={{ borderTop: i ? `1px solid ${T.line}` : 'none' }}>
+        <button type="button" onClick={() => setOpen((o) => ({ ...o, [g.key]: !o[g.key] }))} aria-expanded={isOpen}
+          style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, background: 'none', border: 'none', padding: '14px 0', fontFamily: 'inherit', cursor: 'pointer', color: T.ink, textAlign: 'left' }}>
+          <span>
+            <span style={{ display: 'block', fontSize: 16, fontWeight: 600 }}>{P(lang, g.label)}</span>
+            <span style={{ display: 'block', fontSize: 12, color: T.muted, marginTop: 2 }}>{P(lang, g.hint)}</span>
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+            <span style={{ fontWeight: 600, fontSize: 16 }}>{money(total)}</span>
+            <span aria-hidden style={{ display: 'inline-grid', placeItems: 'center', width: 26, height: 26, borderRadius: 13, background: T.soft, color: T.accent, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
+          </span>
+        </button>
+        {isOpen && (
+          <div className="fade" style={{ margin: '0 0 12px', paddingLeft: 12, borderLeft: `2px solid ${T.line}` }}>
+            {g.sections.map((s) => items(s, g.sections.length > 1))}
           </div>
         )}
       </div>
@@ -177,7 +244,7 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
       [P(lang, 'community'), '', project!.name],
       [P(lang, 'lot'), '', `${lot!.n}${lot!.sqft ? ` (${lot!.sqft} ft²)` : ''}`],
       [P(lang, 'plan'), '', `${home!.name} (${homeIn!.living} / ${homeIn!.total} ft²)`],
-      ...res.rows.map((r) => [r.label[lang], P(lang, SECTION_KEY[r.section]), r.value]),
+      ...res.rows.map((r) => [r.label[lang], `${P(lang, groupOf(r.section).label)} · ${P(lang, SECTION_KEY[r.section])}`, r.value]),
       [P(lang, 'totalCost'), '', res.cost],
       [P(lang, 'sale'), '', res.sale],
       [P(lang, 'profit'), '', res.profit],
@@ -292,12 +359,20 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
         <div style={{ flexBasis: '100%', fontSize: 12, color: T.muted, lineHeight: 1.5 }}>{P(lang, 'financeHint')}</div>
       </div>
 
-      {SECTIONS.map(section)}
+      <div className="kicker" style={{ marginTop: 22 }}>{P(lang, 'breakdownTitle')}</div>
+      <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>{P(lang, 'breakdownHint')}</div>
+      <div className="card" style={{ marginTop: 8, padding: '0 16px' }}>
+        {GROUPS.map(group)}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, padding: '14px 0', borderTop: `2px solid ${T.ink}` }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{P(lang, 'totalCost')}</span>
+          <span style={{ fontSize: 17, fontWeight: 700 }}>{money(res.cost)}</span>
+        </div>
+      </div>
 
       <div style={{ marginTop: 12, fontSize: 13, color: T.muted, lineHeight: 1.5 }}>
         {P(lang, homeIn.rateBasis === 'living' ? 'contractLineLiving' : 'contractLine', { v: money(res.contract), rate: rate(res.partnerTier ? homeIn.rate.partner : homeIn.rate.list), sqft: n(homeIn.rateBasis === 'living' ? homeIn.living : homeIn.total) })}
         {res.showSplit && ` ${P(lang, 'contractSplit', { cost: money(res.contractCost), margin: money(res.builderMargin), pct: pct(res.contract ? res.builderMargin / res.contract : 0) })}`}
-        {contractRows.length > 0 && ` ${model.source[lang]}`}
+        {contractRows.length > 0 && ` ${m.source[lang]}`}
       </div>
 
       <div className="card" style={{ marginTop: 18, padding: 16, borderColor: T.accent }}>
@@ -365,16 +440,22 @@ export default function Numbers({ lang, projects, volumeMin, model, owner, marke
         <div style={{ marginTop: 18, borderRadius: 16, border: '1px dashed #B42318', padding: 16, background: '#FFF8F6' }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#B42318' }}>{P(lang, 'ownerTitle')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 10 }}>
-            <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerCost')}<Cell label={P(lang, 'ownerCost')} value={ownerCost} onChange={setOwnerCost} prefix="$" step={0.5} /></label>
+            <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerCost')}<Cell label={P(lang, 'ownerCost')} value={ownerCost} onChange={(v) => setOwnerCostEdit((s) => ({ ...s, [homeKey]: v }))} prefix="$" step={0.5} /></label>
             <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerLot')}<Cell label={P(lang, 'ownerLot')} value={ownerLot[project.slug] ?? 0} onChange={(v) => setOwnerLot((s) => ({ ...s, [project.slug]: v }))} prefix="$" step={500} wide /></label>
             <label style={{ display: 'grid', gap: 4, fontSize: 12, color: T.muted }}>{P(lang, 'ownerRate')}<Cell label={P(lang, 'ownerRate')} value={homeIn.rate.partner} onChange={(v) => setTryRate(v)} prefix="$" step={1} /></label>
           </div>
-          <div style={{ fontSize: 12, color: T.muted, marginTop: 6 }}>{owner.buildCostNote}</div>
+          <div style={{ fontSize: 12, color: T.muted, marginTop: 6 }}>{ownerNote}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginTop: 10 }}>
             {big('ownerMargin', money(ferest.build + (ferest.lot ?? 0)), ferest.build + (ferest.lot ?? 0) >= 0 ? 'good' : 'bad')}
-            {big('ownerOrder', money((ferest.build + (ferest.lot ?? 0)) * res.order.units), ferest.build >= 0 ? 'good' : 'bad')}
+            {big('ownerOrder', money((ferest.build + (ferest.lot ?? 0)) * res.order.units), ferest.build + (ferest.lot ?? 0) >= 0 ? 'good' : 'bad')}
           </div>
-          {(ferest.build < 0 || (ferest.lot != null && ferest.lot < 0)) && <div style={{ marginTop: 8, color: '#B42318', fontWeight: 600, fontSize: 14 }}>{P(lang, 'ownerLoss')}</div>}
+          {(ferest.build < 0 || (ferest.lot != null && ferest.lot < 0)) && (
+            <div style={{ marginTop: 8, color: '#B42318', fontWeight: 600, fontSize: 14 }}>
+              {P(lang, 'ownerLoss')}
+              {/* The build loss on its own, so a lot gain never hides it. */}
+              {ferest.build < 0 && ` ${P(lang, 'ownerBuildLoss', { v: money(-ferest.build), contract: money(res.contract), cost: money(ownerBuild) })}`}
+            </div>
+          )}
           {ferest.lot == null && <div style={{ marginTop: 8, color: T.muted, fontSize: 13 }}>{P(lang, 'ownerNoLot')}</div>}
         </div>
       )}

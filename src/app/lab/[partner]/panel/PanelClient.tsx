@@ -59,7 +59,7 @@ function CopyButton({ text, lang }: { text: string; lang: Lang }) {
   );
 }
 
-export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing, model, market, marketRefs, builds, platStatus }: {
+export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing, model, models = {}, market, marketRefs, builds, platStatus }: {
   lang: Lang;
   partner: { slug: string; name: string; contactName: string; whatsapp: string };
   first: string;
@@ -74,6 +74,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   from: number | null;
   pricing: ClientPricing;
   model: CostModel | null;
+  models?: Record<string, CostModel>;
   market: { comps: Comp[]; source: string; updatedAt: string | null; notes: Record<string, string> };
   marketRefs: MarketRef[];
   builds: Build[];
@@ -118,8 +119,8 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   const renderTab = (current: Tab): React.ReactNode => {
   let body: React.ReactNode;
   if (current === 'numbers') {
-    body = model
-      ? <Numbers lang={lang} projects={projects} volumeMin={volumeMin} model={model} owner={owner} market={marketRefs} />
+    body = model || Object.keys(models).length
+      ? <Numbers lang={lang} projects={projects} volumeMin={volumeMin} model={model} models={models} owner={owner} market={marketRefs} />
       : <p style={{ marginTop: 24, color: T.muted }}>{P(lang, 'noModel')}</p>;
   } else if (current === 'market') {
     body = <MarketView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name, city: p.place }))} comps={market.comps} source={market.source} updatedAt={market.updatedAt} isOwner={isOwner} notes={market.notes} />;

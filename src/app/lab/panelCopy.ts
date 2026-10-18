@@ -41,6 +41,13 @@ const dict = {
   s5: { es: '5. Financiamiento', en: '5. Financing' },
   s6: { es: '6. Tenencia durante obra y venta', en: '6. Holding during build and sale' },
   s7: { es: '7. Costos de venta', en: '7. Selling costs' },
+  breakdownTitle: { es: 'Pro forma completo por casa', en: 'Full pro forma per home' },
+  breakdownHint: { es: 'Toque cada renglón para ver sus partidas. Lo dorado son sus supuestos.', en: 'Tap each row to see its items. Gold is your assumptions.' },
+  gLand: { es: 'Terreno y cierre', en: 'Land and closing' },
+  gLandHint: { es: 'Lote, título, registro y topografía', en: 'Lot, title, recording and survey' },
+  gHardHint: { es: 'La obra por partida, como el presupuesto del banco', en: 'The build by trade, like the bank budget' },
+  gSoftHint: { es: 'Diseño y permisos, crédito, impuestos, seguro y venta', en: 'Design and permits, loan, taxes, insurance and sale' },
+  drawTag: { es: 'Pago {n}', en: 'Draw {n}' },
   inContract: { es: 'Incluido en su contrato llave en mano FEREST.', en: 'Included in your FEREST turnkey contract.' },
   cashNoLoan: { es: 'De contado: sin costos de crédito. Suba el % financiado para verlos.', en: 'All cash: no loan costs. Raise the financed % to see them.' },
   partnerPrice: { es: 'precio de socio', en: 'partner price' },
@@ -139,6 +146,7 @@ const dict = {
   ownerMargin: { es: 'Margen FEREST por casa', en: 'FEREST margin per home' },
   ownerOrder: { es: 'Margen FEREST en el pedido', en: 'FEREST margin on the order' },
   ownerLoss: { es: 'Abajo del costo: FEREST perdería dinero.', en: 'Below cost: FEREST would lose money.' },
+  ownerBuildLoss: { es: 'La obra pierde {v} por casa: contrato {contract}, costo {cost}. Decida el precio antes de ofrecerlo.', en: 'The build loses {v} per home: {contract} contract, {cost} cost. Decide the price before you offer it.' },
   ownerNoLot: { es: 'Agregue el costo del lote para ver el margen completo.', en: 'Add the lot cost to see the full margin.' },
 
   // build tracker and permits

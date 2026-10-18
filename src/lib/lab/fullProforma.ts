@@ -57,6 +57,21 @@ export interface CostModel {
   showBuilderMargin: boolean;
 }
 
+/** Shape check for uploaded models, so a partial one is skipped instead of breaking the page. */
+export function isCostModel(m: unknown): m is CostModel {
+  const x = m as Partial<CostModel> | null;
+  return !!x && typeof x === 'object' && Array.isArray(x.lines) && Array.isArray(x.draws) && typeof x.escalationPct === 'number' && !!x.source && typeof x.source === 'object';
+}
+
+/** The first valid model among the keys ("community/plan", plan id, community slug), else the default. */
+export function pickCostModel(fallback: CostModel | null | undefined, by: Record<string, CostModel> | null | undefined, keys: string[]): { model: CostModel; key: string | null } | null {
+  for (const k of keys) {
+    const m = by?.[k];
+    if (isCostModel(m)) return { model: m, key: k };
+  }
+  return isCostModel(fallback) ? { model: fallback, key: null } : null;
+}
+
 export interface Inputs {
   units: number;
   exit: Exit;
@@ -187,18 +202,30 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   // 2. Land: the lot price itself, then the buyer's closing lines.
   rows.push({ key: 'lot', section: 'acq', label: { es: 'Precio del terreno', en: 'Lot price' }, value: lotPrice, basis: 'fixed', amount: lotPrice, editable: false, inContract: false });
 
-  // 3-4. Contract: cost lines, then the builder's administration and margin up to the contract price.
+  // 3-4. Contract, itemized like a bank draw budget. With a positive builder margin (and the model allowing it),
+  // lines at cost plus the builder's line; otherwise each line's share of the contract price, with no margin line.
   const contractLines = model.lines.filter((l) => l.inContract);
   const contractCost = contractLines.reduce((s, l) => s + r(lineValue(l, l.amount, home, ctx)), 0);
   const builderMargin = contract - contractCost;
-  // The cost-and-margin breakdown is shown only when the builder margin is positive.
-  const showSplit = model.showBuilderMargin && builderMargin > 0;
-  if (showSplit) {
-    for (const l of contractLines) push(l, lineValue(l, l.amount, home, ctx));
-    rows.push({
-      key: 'builderMargin', section: 'hard', inContract: true, editable: false, basis: 'fixed', amount: builderMargin, value: builderMargin, margin: true,
-      label: { es: 'Administración, garantía y utilidad del constructor', en: 'Builder administration, warranty and margin' },
-    });
+  // No split without cost lines, or the whole contract would read as builder margin.
+  const showSplit = model.showBuilderMargin && contractCost > 0 && builderMargin > 0;
+  if (contractLines.length && contractCost > 0) {
+    // Shares of the unrounded cost, so a rescaled model (as partners receive it) splits exactly the same.
+    const exact = contractLines.reduce((s, l) => s + lineValue(l, l.amount, home, ctx), 0);
+    const share = showSplit ? 1 : exact > 0 ? contract / exact : 0;
+    const first = rows.length;
+    for (const l of contractLines) push(l, lineValue(l, l.amount, home, ctx) * share);
+    if (showSplit) {
+      rows.push({
+        key: 'builderMargin', section: 'hard', inContract: true, editable: false, basis: 'fixed', amount: builderMargin, value: builderMargin, margin: true,
+        label: { es: 'Administración, garantía y utilidad del constructor', en: 'Builder administration, warranty and margin' },
+      });
+    } else {
+      // Rounding remainder on the largest line, so the lines add up to the contract exactly.
+      const added = rows.slice(first);
+      const diff = contract - added.reduce((t, x) => t + x.value, 0);
+      if (diff) added.reduce((a, b) => (b.value > a.value ? b : a)).value += diff;
+    }
   } else {
     rows.push({
       key: 'contract', section: 'hard', inContract: true, editable: false, basis: home.rateBasis === 'living' ? 'perLiving' : 'perTotal', amount: partnerTier ? home.rate.partner : home.rate.list, value: contract,
@@ -257,11 +284,14 @@ export function fullProforma(model: CostModel, home: Home, inp: Inputs, f: Owner
   }
 
   // Draw schedule: contract lines grouped by the draw they are paid in, scaled to the contract price.
+  // Lines shown at their share of the contract are summed as shown, so each draw matches its tagged lines.
   const scale = contractCost > 0 ? contract / contractCost : 1;
+  const allocated = !showSplit && contractCost > 0;
   let cumulative = 0;
   const draws = model.draws.map((d, i) => {
     // The last draw takes the rounding remainder so the draws always add up to the contract.
     const amount = i === model.draws.length - 1 ? contract - cumulative
+      : allocated ? rows.filter((x) => x.inContract && x.draw === d.n).reduce((t, x) => t + x.value, 0)
       : r(contractLines.filter((l) => l.draw === d.n).reduce((t, l) => t + lineValue(l, l.amount, home, ctx), 0) * scale);
     cumulative += amount;
     return { n: d.n, label: d.label, inspection: d.inspection, amount, cumulative, pct: contract ? cumulative / contract : 0 };

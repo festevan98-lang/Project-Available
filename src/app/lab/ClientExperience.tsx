@@ -15,6 +15,12 @@ interface Pick { p: string; kind: 'home' | 'lot'; id: string; lotKey?: string }
 const rate = (v: number) => `$${v % 1 ? v.toFixed(2) : v}`;
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 const n = (v: number) => v.toLocaleString('en-US');
+/** Where the visa facts on the Visas tab come from. */
+const VISA_SOURCES = [
+  { url: 'https://fam.state.gov/fam/09FAM/09FAM040209.html', label: { es: 'Departamento de Estado, 9 FAM 402.9: visas de comerciante e inversionista por tratado (E-1, E-2)', en: 'State Department, 9 FAM 402.9: treaty trader and investor visas (E-1, E-2)' } },
+  { url: 'https://www.uscis.gov/working-in-the-united-states/permanent-workers/eb-5-immigrant-investor-program', label: { es: 'USCIS: programa EB-5 de inversionista inmigrante', en: 'USCIS: EB-5 immigrant investor program' } },
+];
+
 const minOf = (xs: (number | null)[]) => {
   const v = xs.filter((x): x is number => x != null);
   return v.length ? Math.min(...v) : null;
@@ -421,13 +427,61 @@ export default function ClientExperience({ lang, partner, label, projects, oppor
       <div className="fade">
         <h2 className="serif" style={{ fontSize: 32, margin: '28px 0 8px' }}>{L(lang, 'visasTitle')}</h2>
         <Draft />
-        <div className="card" style={{ marginTop: 16, padding: '16px 18px', borderColor: T.gold }}>
+        <p style={{ fontSize: 15, color: T.muted, lineHeight: 1.55, margin: '12px 0 0' }}>{L(lang, 'visasLead')}</p>
+        <div className="card" style={{ marginTop: 14, padding: '16px 18px', borderColor: T.gold }}>
           <div className="serif" style={{ fontSize: 20 }}>{L(lang, 'visaNo')}</div>
         </div>
-        <p style={{ fontSize: 15, lineHeight: 1.6, marginTop: 16 }}>{L(lang, 'visaE2')}</p>
-        <p style={{ fontSize: 15, lineHeight: 1.6 }}>{L(lang, 'visaEb5')}</p>
-        <p style={{ fontSize: 15, lineHeight: 1.6, color: T.muted }}>{L(lang, 'visaAttorney', { partner: partner.name })}</p>
+
+        <div className="card" style={{ marginTop: 14, padding: '16px 18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+            <div className="serif" style={{ fontSize: 21 }}>{L(lang, 'vE2Title')}</div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: T.accent, background: T.accentSoft, borderRadius: 999, padding: '3px 10px' }}>{L(lang, 'vE2Tag')}</span>
+          </div>
+          <div className="kicker" style={{ marginTop: 12 }}>{L(lang, 'vE2Asks')}</div>
+          <ul style={{ margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6, fontSize: 15, lineHeight: 1.5 }}>
+            {(['vE2a', 'vE2b', 'vE2c', 'vE2d'] as LabKey[]).map((k) => <li key={k}>{L(lang, k)}</li>)}
+          </ul>
+          <p style={{ fontSize: 14, lineHeight: 1.5, margin: '12px 0 0', color: '#B42318' }}>{L(lang, 'vE2No')}</p>
+          <p style={{ fontSize: 14, lineHeight: 1.5, margin: '8px 0 0' }}>{L(lang, 'vE2Fit')}</p>
+          <p style={{ fontSize: 14, lineHeight: 1.5, margin: '8px 0 0', color: T.muted }}>{L(lang, 'vE2Term')}</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginTop: 12 }}>
+          <div className="card" style={{ padding: '16px 18px' }}>
+            <div className="serif" style={{ fontSize: 19 }}>{L(lang, 'vFamTitle')}</div>
+            <p style={{ fontSize: 14, lineHeight: 1.5, margin: '8px 0 0' }}>{L(lang, 'vFam1')}</p>
+            <p style={{ fontSize: 14, lineHeight: 1.5, margin: '6px 0 0', color: T.muted }}>{L(lang, 'vFam2')}</p>
+          </div>
+          <div className="card" style={{ padding: '16px 18px' }}>
+            <div className="serif" style={{ fontSize: 19 }}>{L(lang, 'vEb5Title')}</div>
+            <p style={{ fontSize: 14, lineHeight: 1.5, margin: '8px 0 0' }}>{L(lang, 'vEb5')}</p>
+            <p style={{ fontSize: 14, lineHeight: 1.5, margin: '6px 0 0', color: T.muted }}>{L(lang, 'vEb5No')}</p>
+          </div>
+        </div>
+
+        <div className="kicker" style={{ marginTop: 22 }}>{L(lang, 'vProsTitle')}</div>
+        <ul style={{ margin: '8px 0 0', paddingLeft: 18, display: 'grid', gap: 6, fontSize: 15, lineHeight: 1.5 }}>
+          {(['vPro1', 'vPro2', 'vPro3', 'vPro4'] as LabKey[]).map((k) => <li key={k}>{L(lang, k)}</li>)}
+        </ul>
+
+        <div className="kicker" style={{ marginTop: 22 }}>{L(lang, 'vStepsTitle')}</div>
+        <ol style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'grid', gap: 12 }}>
+          {(['vStep1', 'vStep2', 'vStep3', 'vStep4'] as LabKey[]).map((k, i) => (
+            <li key={k} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <span className="serif" style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 999, background: T.accentSoft, color: T.accent, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{i + 1}</span>
+              <span style={{ fontSize: 15, lineHeight: 1.5, paddingTop: 3 }}>{L(lang, k)}</span>
+            </li>
+          ))}
+        </ol>
+
+        <p style={{ fontSize: 15, lineHeight: 1.6, color: T.muted, marginTop: 20 }}>{L(lang, 'visaAttorney', { partner: partner.name })}</p>
         <a className="btn btn-ghost" style={{ marginTop: 6, width: '100%' }} href={`https://wa.me/${partner.whatsapp}?text=${encodeURIComponent(L(lang, 'askAttorneyMsg', { contact: partner.contactName }))}`} target="_blank" rel="noopener noreferrer" onClick={() => track('cta:attorney')}>{L(lang, 'askAttorney')}</a>
+        <details style={{ marginTop: 14, fontSize: 13, color: T.muted }}>
+          <summary style={{ cursor: 'pointer' }}>{L(lang, 'vSources')}</summary>
+          <ul style={{ paddingLeft: 18 }}>
+            {VISA_SOURCES.map((s) => <li key={s.url}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.label[lang]}</a></li>)}
+          </ul>
+        </details>
       </div>
     );
   }

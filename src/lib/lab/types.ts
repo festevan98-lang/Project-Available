@@ -112,8 +112,10 @@ export interface LabNumbers {
   buildBasis?: 'living' | 'total';
   /** Plat recording status per subdivision slug, shown in the build tab. */
   platStatus?: Record<string, { es: string; en: string }>;
-  /** Full pro forma cost lines (private; from FEREST's bank budget). */
+  /** Full pro forma cost lines (private; from FEREST's bank budget). Default for every plan. */
   costModel?: CostModel;
+  /** Cost models for specific homes, keyed "community/plan", plan id or community slug (checked in that order, then costModel). */
+  costModels?: Record<string, CostModel>;
 }
 
 /** FEREST's own costs, readable only by owner accounts. */
@@ -121,6 +123,9 @@ export interface OwnerEconomics {
   /** Actual build cost per total sq ft. */
   buildCost: number;
   buildCostNote: string;
+  /** Actual build cost per total sq ft for specific homes, same keys as numbers.costModels. */
+  buildCostBy?: Record<string, number>;
+  buildCostNoteBy?: Record<string, string>;
   /** FEREST cost basis per lot, by subdivision slug. */
   lotCost: Record<string, number>;
   /** Line items from the bank package, for reference. */

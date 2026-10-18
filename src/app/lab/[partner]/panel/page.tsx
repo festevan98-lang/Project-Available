@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { canManage, clientPricingFor, currentAccount, getMarket, getOwnerEconomics, listBuilds, listLeads, listLinks } from '@/lib/lab/store';
+import type { CostModel } from '@/lib/lab/fullProforma';
 import { statsFor } from '@/lib/lab/market';
 import { resolveLang } from '../../../portal/lang';
 import { clientProjects, loadPartner } from '../../context';
@@ -26,6 +27,18 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
     listBuilds(slug),
     account!.role === 'owner' ? getOwnerEconomics(slug) : Promise.resolve(null),
   ]);
+
+  // A model that hides the builder margin reaches partners as proportions only: its contract lines are rescaled,
+  // which splits the contract the same way, so FEREST's dollar costs never leave the server.
+  const forViewer = (m: CostModel): CostModel => {
+    if (!m || account!.role === 'owner' || m.showBuilderMargin || !Array.isArray(m.lines)) return m;
+    const c = m.lines.filter((l) => l.inContract);
+    const sum = c.reduce((t, l) => t + Math.abs(l.amount), 0);
+    if (!sum || c.some((l) => l.basis === 'titleOwner' || l.basis === 'titleLoan')) return m;
+    return { ...m, lines: m.lines.map((l) => (l.inContract ? { ...l, amount: l.amount * 1e6 / sum } : l)) };
+  };
+  const costModel = partner.numbers?.costModel ? forViewer(partner.numbers.costModel) : null;
+  const costModels = Object.fromEntries(Object.entries(partner.numbers?.costModels ?? {}).map(([k, m]) => [k, forViewer(m)]));
 
   const h = await headers();
   const origin = `${h.get('x-forwarded-proto') ?? 'https'}://${h.get('host')}`;
@@ -69,7 +82,7 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
         isOwner={account!.role === 'owner'}
         projects={projects}
         volumeMin={partner.numbers?.volumeMin ?? 15}
-        owner={owner ? { buildCost: owner.buildCost, buildCostNote: owner.buildCostNote, lotCost: owner.lotCost } : null}
+        owner={owner ? { buildCost: owner.buildCost, buildCostNote: owner.buildCostNote, lotCost: owner.lotCost ?? {}, buildCostBy: owner.buildCostBy ?? {}, buildCostNoteBy: owner.buildCostNoteBy ?? {} } : null}
         links={panelLinks}
         leads={panelLeads}
         site={site}
@@ -78,7 +91,8 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
         pricing={pricing}
         builds={builds}
         platStatus={partner.numbers?.platStatus ?? {}}
-        model={partner.numbers?.costModel ?? null}
+        model={costModel}
+        models={costModels}
         market={{ comps: market?.comps ?? [], source: market?.source ?? '', updatedAt: market?.updatedAt ?? null, notes: market?.notes ?? {} }}
         marketRefs={projects.flatMap((p) => {
           const st = statsFor(market?.comps ?? [], p.slug).soldNew;

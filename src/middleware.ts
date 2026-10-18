@@ -1,13 +1,17 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { ADMIN_COOKIE_NAME, expectedSessionValue } from '@/lib/admin/session';
 
+// On a partner-site deployment only the partner site, its APIs, catalog photos and static files are served.
+const PARTNER_SITE_PATHS = /^\/(lab(\/|$)|api\/lab\/|api\/portal\/file$)|\.[a-z0-9]{2,5}$/i;
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Lab test deployment: the root shows the partner site (set LAB_HOME to /lab/<partner-slug>). Unset everywhere else.
-  if (path === '/') {
-    const home = process.env.LAB_HOME;
-    return home && /^\/lab\/[a-z0-9-]+$/.test(home) ? NextResponse.rewrite(new URL(home, request.url)) : NextResponse.next();
+  // Partner-site deployment: LAB_HOME is /lab/<partner-slug> and the root shows that site. Unset everywhere else.
+  const home = process.env.LAB_HOME;
+  if (home && /^\/lab\/[a-z0-9-]+$/.test(home)) {
+    if (path === '/') return NextResponse.rewrite(new URL(home, request.url));
+    return PARTNER_SITE_PATHS.test(path) ? NextResponse.next() : NextResponse.redirect(new URL('/', request.url));
   }
 
   // Portal: redirect when no session cookie is present. Real verification
@@ -18,6 +22,8 @@ export async function middleware(request: NextRequest) {
     }
     return NextResponse.next();
   }
+
+  if (!path.startsWith('/admin') && !path.startsWith('/api/admin')) return NextResponse.next();
 
   const cookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const expected = await expectedSessionValue();
@@ -40,5 +46,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/admin/:path*', '/api/admin/:path*', '/portal/:path*'],
+  // Every route except Next's own build assets, so a partner-site deployment can fence off the rest of the app.
+  matcher: ['/((?!_next/static|_next/image).*)'],
 };

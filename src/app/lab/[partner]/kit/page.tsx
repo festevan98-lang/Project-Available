@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { canManage, currentAccount } from '@/lib/lab/store';
+import { canManage, clientPricingFor, currentAccount } from '@/lib/lab/store';
 import type { AppHome } from '../../../portal/catalogData';
 import { money } from '../../../portal/i18n';
 import { resolveLang } from '../../../portal/lang';
@@ -31,7 +31,7 @@ export default async function PartnerKit({ params }: { params: Promise<{ partner
   const ctx = await loadPartner(slug, lang, true);
   if (!ctx) notFound();
   const { partner, brand } = ctx;
-  const projects = clientProjects(ctx.projects, partner.numbers?.clientPrice ?? 'list');
+  const projects = clientProjects(ctx.projects, await clientPricingFor(partner));
   const host = (await headers()).get('host') ?? '';
   const site = process.env.LAB_HOME === `/lab/${slug}` ? host : `${host}/lab/${slug}`;
 

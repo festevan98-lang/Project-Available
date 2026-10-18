@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import { getLink, recordEvent } from '@/lib/lab/store';
+import { clientPricingFor, getLink, recordEvent } from '@/lib/lab/store';
 import { resolveLang } from '../../../portal/lang';
 import ClientExperience from '../../ClientExperience';
 import { clientProjects, isBot, loadPartner } from '../../context';
@@ -34,7 +34,7 @@ export default async function ClientLinkPage({ params }: { params: Promise<{ id:
         lang={lang}
         partner={{ slug: partner.slug, name: partner.name, whatsapp: partner.whatsapp, contactName: partner.contactName }}
         label={link.label}
-        projects={clientProjects(projects, partner.numbers?.clientPrice ?? 'list')}
+        projects={clientProjects(projects, await clientPricingFor(partner))}
         opportunities={partner.opportunities ?? []}
         linkId={link.id}
         preview={false}

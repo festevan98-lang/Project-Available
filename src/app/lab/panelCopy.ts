@@ -108,6 +108,20 @@ const dict = {
   ownerLoss: { es: 'Abajo del costo: FEREST perdería dinero.', en: 'Below cost: FEREST would lose money.' },
   ownerNoLot: { es: 'Agregue el costo del lote para ver el margen completo.', en: 'Add the lot cost to see the full margin.' },
 
+  // client pricing
+  cpTitle: { es: 'Precio que ven sus clientes', en: 'Price your clients see' },
+  cpLead: { es: 'Usted decide. Aplica a sus enlaces personales, a la vista de cliente y al folleto.', en: 'Your call. It applies to your personal links, the client view and the brochure.' },
+  cpPartner: { es: 'Mi precio', en: 'My price' },
+  cpList: { es: 'Precio de lista', en: 'List price' },
+  cpMarkup: { es: 'Mi precio + margen', en: 'My price + margin' },
+  cpMarkupLabel: { es: 'Margen sobre su precio', en: 'Margin over your price' },
+  cpListAt: { es: 'El precio de lista equivale a +{pct}% sobre su precio.', en: 'List price is about +{pct}% over your price.' },
+  cpYouPay: { es: 'Usted paga', en: 'You pay' },
+  cpClientSees: { es: 'Su cliente ve', en: 'Your client sees' },
+  cpSave: { es: 'Guardar', en: 'Save' },
+  cpSaved: { es: 'Guardado', en: 'Saved' },
+  cpError: { es: 'No se pudo guardar. Intente de nuevo.', en: 'Could not save. Try again.' },
+
   // marketing
   mTitle: { es: 'Material para su agencia', en: 'Material for your agency' },
   mSite: { es: 'Su sitio', en: 'Your site' },

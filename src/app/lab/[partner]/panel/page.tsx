@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { canManage, currentAccount, getOwnerEconomics, listLeads, listLinks } from '@/lib/lab/store';
+import { canManage, clientPricingFor, currentAccount, getOwnerEconomics, listLeads, listLinks } from '@/lib/lab/store';
 import { resolveLang } from '../../../portal/lang';
 import { clientProjects, loadPartner } from '../../context';
 import { L } from '../../copy';
@@ -28,7 +28,8 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
   const origin = `${h.get('x-forwarded-proto') ?? 'https'}://${h.get('host')}`;
   const site = process.env.LAB_HOME === `/lab/${slug}` ? origin : `${origin}/lab/${slug}`;
 
-  const forClients = clientProjects(projects, partner.numbers?.clientPrice ?? 'list');
+  const pricing = await clientPricingFor(partner);
+  const forClients = clientProjects(projects, pricing);
   const fromPrices = forClients.flatMap((p) => {
     const lot = Math.min(...p.lots.map((l) => l.price ?? Infinity));
     return p.homes.map((x) => (x.price != null && Number.isFinite(lot) ? x.price + lot : Infinity));
@@ -71,6 +72,7 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
         site={site}
         origin={origin}
         from={Number.isFinite(from) ? from : null}
+        pricing={pricing}
       />
     </LabShell>
   );

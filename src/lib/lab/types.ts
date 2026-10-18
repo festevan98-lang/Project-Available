@@ -114,3 +114,17 @@ export interface OwnerEconomics {
   /** Line items from the bank package, for reference. */
   lines?: { label: string; amount: number }[];
 }
+
+/** What the partner's clients see on client links and the brochure. */
+export interface ClientPricing {
+  mode: 'partner' | 'list' | 'markup';
+  /** Percent added to the partner's own price when mode is 'markup'. */
+  markupPct: number;
+}
+
+/** Settings the partner controls from their panel. */
+export interface PartnerSettings {
+  clientPricing: ClientPricing;
+  updatedAt: string;
+  updatedBy: string;
+}

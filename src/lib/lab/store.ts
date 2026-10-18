@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { get, list, put } from '@vercel/blob';
-import type { ClientLink, LabAccount, LabLead, LabPartner, OwnerEconomics } from './types';
+import type { ClientLink, ClientPricing, LabAccount, LabLead, LabPartner, OwnerEconomics, PartnerSettings } from './types';
 import { LAB_COOKIE, verifyLabSession } from './session';
 
 const ROOT = 'portal/lab';
@@ -41,6 +41,20 @@ export async function getPartner(slug: string): Promise<LabPartner | null> {
 /** FEREST cost basis for a partner's offer. Callers must check the account is an owner. */
 export async function getOwnerEconomics(slug: string): Promise<OwnerEconomics | null> {
   return SLUG.test(slug) ? readJson<OwnerEconomics>(`${ROOT}/owner/${slug}.json`) : null;
+}
+
+export async function getSettings(slug: string): Promise<PartnerSettings | null> {
+  return SLUG.test(slug) ? readJson<PartnerSettings>(`${ROOT}/settings/${slug}.json`) : null;
+}
+
+export async function saveSettings(slug: string, settings: PartnerSettings): Promise<void> {
+  await writeJson(`${ROOT}/settings/${slug}.json`, settings);
+}
+
+/** The pricing a partner's clients see: the partner's own setting, else the partner config default. */
+export async function clientPricingFor(partner: LabPartner): Promise<ClientPricing> {
+  const saved = (await getSettings(partner.slug))?.clientPricing;
+  return saved ?? { mode: partner.numbers?.clientPrice ?? 'list', markupPct: 0 };
 }
 
 export async function getAccounts(): Promise<LabAccount[]> {

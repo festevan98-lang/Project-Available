@@ -7,6 +7,8 @@ import { money } from '../../../portal/i18n';
 import { L } from '../../copy';
 import { P, type PanelKey } from '../../panelCopy';
 import { T } from '../../ui';
+import type { ClientPricing } from '@/lib/lab/types';
+import ClientPricingCard from './ClientPricingCard';
 import Numbers, { type OwnerView } from './Numbers';
 
 export interface PanelLink {
@@ -46,7 +48,7 @@ function CopyButton({ text, lang }: { text: string; lang: Lang }) {
   );
 }
 
-export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from }: {
+export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing }: {
   lang: Lang;
   partner: { slug: string; name: string; contactName: string; whatsapp: string };
   first: string;
@@ -59,6 +61,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   site: string;
   origin: string;
   from: number | null;
+  pricing: ClientPricing;
 }) {
   const [tab, setTab] = useState<Tab>('numbers');
   const [links, setLinks] = useState(initialLinks);
@@ -96,6 +99,7 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   } else if (tab === 'clients') {
     body = (
       <div className="fade">
+        <ClientPricingCard lang={lang} partner={partner.slug} projects={projects} initial={pricing} />
         <form onSubmit={create} className="card" style={{ marginTop: 24, padding: 18, display: 'grid', gap: 10 }}>
           <div className="serif" style={{ fontSize: 22 }}>{L(lang, 'sendTitle')}</div>
           <p style={{ margin: 0, fontSize: 14, color: T.muted, lineHeight: 1.5 }}>{L(lang, 'sendHint')}</p>

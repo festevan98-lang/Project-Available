@@ -38,7 +38,7 @@ export function Brand({ name, logo }: { name: string; logo: string | null }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={logo} alt="" width={30} height={30} style={{ borderRadius: 7, display: 'block' }} />
       )}
-      <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.15 }}>
+      <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.15, whiteSpace: 'nowrap' }}>
         {name}
         <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: T.gold }}>× FEREST DEVELOPMENT</span>
       </span>

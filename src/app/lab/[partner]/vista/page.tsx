@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { canManage, currentAccount } from '@/lib/lab/store';
+import { canManage, clientPricingFor, currentAccount } from '@/lib/lab/store';
 import { resolveLang } from '../../../portal/lang';
 import ClientExperience from '../../ClientExperience';
 import { clientProjects, loadPartner } from '../../context';
@@ -21,7 +21,7 @@ export default async function PartnerPreview({ params }: { params: Promise<{ par
         lang={lang}
         partner={{ slug, name: partner.name, whatsapp: partner.whatsapp, contactName: partner.contactName }}
         label={null}
-        projects={clientProjects(projects, partner.numbers?.clientPrice ?? 'list')}
+        projects={clientProjects(projects, await clientPricingFor(partner))}
         opportunities={partner.opportunities ?? []}
         linkId={null}
         preview

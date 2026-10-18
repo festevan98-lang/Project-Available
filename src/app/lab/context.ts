@@ -9,6 +9,8 @@ import { area, t } from '../portal/i18n';
 export interface PartnerContext {
   partner: LabPartner;
   brand: { name: string; logo: string | null };
+  /** Photo of a finished home for the public page, if the partner has one. */
+  hero: string | null;
   /** Projects with both list (retail) and partner (price) figures. */
   projects: AppProject[];
 }
@@ -44,7 +46,9 @@ export async function loadPartner(slug: string, lang: Lang, withProjects = true)
   const token = signShare(partner.investorId);
   const img = (src: string) => catalogImageUrl(partner.catalogId, src, token);
   const brand = { name: partner.name, logo: partner.logo ? img(partner.logo) : null };
-  if (!withProjects) return { partner, brand, projects: [] };
+  const heroSrc = partner.numbers?.plans?.find((x) => x.real)?.images?.[0];
+  const hero = heroSrc ? img(heroSrc) : null;
+  if (!withProjects) return { partner, brand, hero, projects: [] };
   const catalog = await getCatalog(partner.catalogId);
   const base = catalog ? await buildAppProjects(catalog, lang, token) : [];
   const plans = partner.numbers?.plans ?? [];
@@ -52,16 +56,10 @@ export async function loadPartner(slug: string, lang: Lang, withProjects = true)
     const here = plans.filter((x) => x.communities.includes(p.slug));
     return here.length ? { ...p, homes: here.map((x) => planHome(x, p, lang, img)) } : p;
   });
-  return { partner, brand, projects };
+  return { partner, brand, hero, projects };
 }
 
-/** What a client link shows: list prices by default, or the partner's own prices. */
-export function clientProjects(projects: AppProject[], mode: 'list' | 'partner'): AppProject[] {
-  if (mode === 'partner') return projects;
-  const list = <X extends { retail: number | null; price: number | null; rate: { retail: number; price: number } | null }>(x: X): X =>
-    ({ ...x, price: x.retail ?? x.price, rate: x.rate ? { ...x.rate, price: x.rate.retail } : null });
-  return projects.map((p) => ({ ...p, lots: p.lots.map(list), homes: p.homes.map(list) }));
-}
+export { clientPrice, clientProjects } from './pricing';
 
 const BOTS = /bot|crawl|spider|preview|facebookexternalhit|whatsapp|telegram|slack|discord|skype|linkedin|embedly|vercel/i;
 export const isBot = (ua: string | null) => !ua || BOTS.test(ua);

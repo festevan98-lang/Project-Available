@@ -1,3 +1,5 @@
+import type { CostModel } from './fullProforma';
+
 // White-label partner portal ("lab"). All data lives in the private Blob store
 // under portal/lab/, separate from the live investor portal's files.
 
@@ -100,8 +102,10 @@ export interface LabNumbers {
   /** Units per order that unlock partner pricing; below it, list prices apply. */
   volumeMin: number;
   plans: LabPlan[];
-  /** Prices the partner's clients see on client links. */
+  /** Prices the partner's clients see on client links (default until the partner sets their own). */
   clientPrice: 'list' | 'partner';
+  /** Full pro forma cost lines (private; from FEREST's bank budget). */
+  costModel?: CostModel;
 }
 
 /** FEREST's own costs, readable only by owner accounts. */
@@ -127,4 +131,49 @@ export interface PartnerSettings {
   clientPricing: ClientPricing;
   updatedAt: string;
   updatedBy: string;
+}
+
+/** One market comparable (public listing or MLS export). */
+export interface Comp {
+  address: string;
+  subdivision?: string;
+  city: string;
+  kind: 'home' | 'townhome' | 'lot' | 'rental';
+  status: 'sold' | 'active' | 'pending' | 'leased' | 'unknown';
+  price: number;
+  date?: string;
+  beds?: number;
+  baths?: number;
+  livingSqft?: number;
+  lotSqft?: number;
+  yearBuilt?: number;
+  newConstruction?: boolean;
+  builder?: string;
+  sourceUrl?: string;
+  notes?: string;
+  /** Partner subdivision slug this comp is compared against. */
+  community: string;
+}
+
+export interface MarketData {
+  updatedAt: string;
+  /** Where the comps came from (public listings, MLS export from a licensed agent, ...). */
+  source: string;
+  comps: Comp[];
+  /** Plain-language note per subdivision slug (e.g. where its comps come from). */
+  notes?: Record<string, string>;
+}
+
+export type StageStatus = 'pending' | 'scheduled' | 'passed' | 'failed';
+
+/** A home under construction, tracked by city inspection stage. */
+export interface Build {
+  id: string;
+  partner: string;
+  /** Shown to the partner, e.g. "Laguna Heights · Lot 36 · Laguna". */
+  label: string;
+  community: string;
+  stages: Partial<Record<import('./permits').StageKey, { status: StageStatus; date?: string; note?: string }>>;
+  createdAt: string;
+  updatedAt: string;
 }

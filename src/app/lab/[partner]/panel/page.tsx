@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { canManage, clientPricingFor, currentAccount, getOwnerEconomics, listLeads, listLinks } from '@/lib/lab/store';
+import { canManage, clientPricingFor, currentAccount, getMarket, getOwnerEconomics, listBuilds, listLeads, listLinks } from '@/lib/lab/store';
+import { statsFor } from '@/lib/lab/market';
 import { resolveLang } from '../../../portal/lang';
 import { clientProjects, loadPartner } from '../../context';
 import { L } from '../../copy';
@@ -18,9 +19,11 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
   if (!ctx) notFound();
   const { partner, brand, projects } = ctx;
 
-  const [links, leads, owner] = await Promise.all([
+  const [links, leads, market, builds, owner] = await Promise.all([
     listLinks(slug),
     listLeads(slug),
+    getMarket(slug),
+    listBuilds(slug),
     account!.role === 'owner' ? getOwnerEconomics(slug) : Promise.resolve(null),
   ]);
 
@@ -73,6 +76,13 @@ export default async function PartnerPanel({ params }: { params: Promise<{ partn
         origin={origin}
         from={Number.isFinite(from) ? from : null}
         pricing={pricing}
+        builds={builds}
+        model={partner.numbers?.costModel ?? null}
+        market={{ comps: market?.comps ?? [], source: market?.source ?? '', updatedAt: market?.updatedAt ?? null, notes: market?.notes ?? {} }}
+        marketRefs={projects.flatMap((p) => {
+          const st = statsFor(market?.comps ?? [], p.slug).soldNew;
+          return st.median ? [{ slug: p.slug, perLiving: Math.round(st.median), count: st.count, label: lang === 'es' ? `mediana de ${st.count} casas nuevas vendidas` : `median of ${st.count} new homes sold` }] : [];
+        })}
       />
     </LabShell>
   );

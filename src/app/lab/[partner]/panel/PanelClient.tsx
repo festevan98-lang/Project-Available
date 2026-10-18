@@ -9,7 +9,11 @@ import { P, type PanelKey } from '../../panelCopy';
 import { T } from '../../ui';
 import type { ClientPricing } from '@/lib/lab/types';
 import ClientPricingCard from './ClientPricingCard';
-import Numbers, { type OwnerView } from './Numbers';
+import type { CostModel } from '@/lib/lab/fullProforma';
+import type { Build, Comp } from '@/lib/lab/types';
+import BuildView from './BuildView';
+import MarketView from './MarketView';
+import Numbers, { type MarketRef, type OwnerView } from './Numbers';
 
 export interface PanelLink {
   id: string;
@@ -33,7 +37,7 @@ export interface PanelLead {
   createdAt: string;
 }
 
-type Tab = 'numbers' | 'clients' | 'marketing' | 'growth';
+type Tab = 'numbers' | 'market' | 'build' | 'clients' | 'marketing' | 'growth';
 
 const when = (iso: string, lang: Lang) =>
   new Date(iso).toLocaleString(lang === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -48,7 +52,7 @@ function CopyButton({ text, lang }: { text: string; lang: Lang }) {
   );
 }
 
-export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing }: {
+export default function PanelClient({ lang, partner, first, isOwner, projects, volumeMin, owner, links: initialLinks, leads, site, origin, from, pricing, model, market, marketRefs, builds }: {
   lang: Lang;
   partner: { slug: string; name: string; contactName: string; whatsapp: string };
   first: string;
@@ -62,6 +66,10 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   origin: string;
   from: number | null;
   pricing: ClientPricing;
+  model: CostModel | null;
+  market: { comps: Comp[]; source: string; updatedAt: string | null; notes: Record<string, string> };
+  marketRefs: MarketRef[];
+  builds: Build[];
 }) {
   const [tab, setTab] = useState<Tab>('numbers');
   const [links, setLinks] = useState(initialLinks);
@@ -91,11 +99,17 @@ export default function PanelClient({ lang, partner, first, isOwner, projects, v
   const waSend = (url: string) => `https://wa.me/?text=${encodeURIComponent(`${L(lang, 'waInvite')} ${url}`)}`;
   const fromText = from != null ? money(from) : '';
 
-  const tabs: [Tab, PanelKey][] = [['numbers', 'tNumbers'], ['clients', 'tClients'], ['marketing', 'tMarketing'], ['growth', 'tGrowth']];
+  const tabs: [Tab, PanelKey][] = [['numbers', 'tNumbers'], ['market', 'tMarket'], ['build', 'tBuild'], ['clients', 'tClients'], ['marketing', 'tMarketing'], ['growth', 'tGrowth']];
 
   let body: React.ReactNode;
   if (tab === 'numbers') {
-    body = <Numbers lang={lang} projects={projects} volumeMin={volumeMin} owner={owner} />;
+    body = model
+      ? <Numbers lang={lang} projects={projects} volumeMin={volumeMin} model={model} owner={owner} market={marketRefs} />
+      : <p style={{ marginTop: 24, color: T.muted }}>{P(lang, 'noModel')}</p>;
+  } else if (tab === 'market') {
+    body = <MarketView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name, city: p.place }))} comps={market.comps} source={market.source} updatedAt={market.updatedAt} isOwner={isOwner} notes={market.notes} />;
+  } else if (tab === 'build') {
+    body = <BuildView lang={lang} partner={partner.slug} communities={projects.map((p) => ({ slug: p.slug, name: p.name }))} builds={builds} isOwner={isOwner} />;
   } else if (tab === 'clients') {
     body = (
       <div className="fade">

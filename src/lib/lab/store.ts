@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { get, list, put } from '@vercel/blob';
-import type { ClientLink, ClientPricing, LabAccount, LabLead, LabPartner, OwnerEconomics, PartnerSettings } from './types';
+import type { Build, ClientLink, ClientPricing, LabAccount, LabLead, LabPartner, MarketData, OwnerEconomics, PartnerSettings } from './types';
 import { LAB_COOKIE, verifyLabSession } from './session';
 
 const ROOT = 'portal/lab';
@@ -55,6 +55,24 @@ export async function saveSettings(slug: string, settings: PartnerSettings): Pro
 export async function clientPricingFor(partner: LabPartner): Promise<ClientPricing> {
   const saved = (await getSettings(partner.slug))?.clientPricing;
   return saved ?? { mode: partner.numbers?.clientPrice ?? 'list', markupPct: 0 };
+}
+
+/** Market comparables for a partner's subdivisions. */
+export async function getMarket(slug: string): Promise<MarketData | null> {
+  return SLUG.test(slug) ? readJson<MarketData>(`${ROOT}/market/${slug}.json`) : null;
+}
+
+export async function saveMarket(slug: string, data: MarketData): Promise<void> {
+  await writeJson(`${ROOT}/market/${slug}.json`, data);
+}
+
+/** Homes under construction for a partner, with inspection status. */
+export async function listBuilds(slug: string): Promise<Build[]> {
+  return SLUG.test(slug) ? (await readJson<Build[]>(`${ROOT}/builds/${slug}.json`)) ?? [] : [];
+}
+
+export async function saveBuilds(slug: string, builds: Build[]): Promise<void> {
+  await writeJson(`${ROOT}/builds/${slug}.json`, builds);
 }
 
 export async function getAccounts(): Promise<LabAccount[]> {
